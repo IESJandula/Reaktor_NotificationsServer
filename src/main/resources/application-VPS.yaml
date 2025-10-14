@@ -1,0 +1,25 @@
+spring:
+  jpa.hibernate.ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3306/reaktor_firebaseserver
+    username: root
+    password: ${DB_PASSWORD}
+    hikari:
+      connection-timeout: 60000
+      maximum-pool-size: 5
+server:
+  port: 8083
+logging:
+    level:
+        root: INFO
+    file:
+        name: /tmp/reaktor_firebaseserver.log
+        max-size: 1MB
+        max-history: 10
+        total-size-cap: 10MB
+
+reaktor:
+  publicKeyFile: ${PUBLIC_KEY_FILE}
+  privateKeyFile: ${PRIVATE_KEY_FILE}
+  googleCredentialsFile: ${GOOGLE_CREDENTIALS_FILE}
+  urlCors: https://somos.iesjandula.es
