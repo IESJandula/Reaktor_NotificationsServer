@@ -24,13 +24,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class Aplicacion
 {
-
-    /** Atributo - ID único de la aplicación */
-    @Id
-    private String clientId ;
-
     /** Atributo - Nombre descriptivo de la aplicación */
-    @Column(nullable = false)
+    @Id
     private String nombre ;
 
     /** Atributo - Roles asociados a la aplicación */
@@ -56,7 +51,7 @@ public class Aplicacion
     private List<NotificacionEmail> notificacionesEmails ;
     
     @OneToMany(mappedBy = "aplicacion")
-    private List<NotificacionWeb> notificacionesWebs ;
+    private List<NotificacionWebUsuario> notificacionesWebs ;
 
     /**
      * @return lista de roles deserializada

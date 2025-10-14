@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.notifications_server.rest;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -37,12 +38,14 @@ public class NotificationsManagerController
 	
 	@Autowired
 	private INotificacionWebRepository notificacionWebRepository ;
+
+	@Value("${reaktor.firebase_server_url}")
+	private String firebaseServerUrl;
 	
 	@RequestMapping(method = RequestMethod.GET, value = "notificacionesEnviadas")
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
 	public ResponseEntity<?> obtenerResumen(@RequestHeader("nombre") String nombre, @RequestHeader("client_id") String clientId)
 	{
-		
 		try 
 		{
 			Aplicacion aplicacion = aplicacionRepository.findByClientIdAndNombre(clientId, nombre) ;

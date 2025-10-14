@@ -1,19 +1,19 @@
 spring:
   jpa.hibernate.ddl-auto: update
   datasource:
-    url: jdbc:mysql://localhost:3306/reaktor_firebaseserver
+    url: jdbc:mysql://localhost:3306/reaktor_notificationsserver
     username: root
     password: ${DB_PASSWORD}
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 5
 server:
-  port: 8083
+  port: 8091
 logging:
     level:
         root: INFO
     file:
-        name: /tmp/reaktor_firebaseserver.log
+        name: /tmp/reaktor_notificationsserver.log
         max-size: 1MB
         max-history: 10
         total-size-cap: 10MB

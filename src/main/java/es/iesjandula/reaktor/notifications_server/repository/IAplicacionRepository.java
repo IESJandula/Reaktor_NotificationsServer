@@ -9,8 +9,6 @@ import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
  */
 public interface IAplicacionRepository extends JpaRepository<Aplicacion, String>
 {
-
-	Aplicacion findByClientIdAndNombre(String clientId, String nombre) ;
-	
+	Aplicacion findByNombre(String nombre) ;	
 }
 

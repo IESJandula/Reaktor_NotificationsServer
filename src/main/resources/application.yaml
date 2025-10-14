@@ -1,14 +1,14 @@
 spring:
   jpa.hibernate.ddl-auto: update
   datasource:
-    url: jdbc:mysql://localhost:3306/reaktor_firebaseserver?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/reaktor_notificationsserver?createDatabaseIfNotExist=true
     username: root
     password: toor
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 5
 server:
-  port: 8083  
+  port: 8091
 reaktor:
   publicKeyFile: C:\claves\public_key.pem
   privateKeyFile: C:\claves\private_key.pem

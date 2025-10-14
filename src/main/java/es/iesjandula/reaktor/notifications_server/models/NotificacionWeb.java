@@ -4,11 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,34 +13,33 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "notificacion_web")
-@NoArgsConstructor
+@Inheritance(strategy = InheritanceType.JOINED)
 @AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class NotificacionWeb 
 {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id ;
-	
+	/** Atributo - Fecha de creación */
 	private LocalDate fechaCreacion ;
 	
+	/** Atributo - Texto */
 	private String texto ;
 	
+	/** Atributo - Hora de inicio */
 	private LocalTime horaInicio ;
 	
+	/** Atributo - Fecha de fin */
 	private LocalDate fechaFin ;
 	
+	/** Atributo - Hora de fin */
 	private LocalTime horaFin ;
 	
+	/** Atributo - Roles */
 	private String roles ;
 	
+	/** Atributo - Nivel */
 	private String nivel ;
 	
+	/** Atributo - Fecha de inicio */
 	private LocalDate fechaInicio ;
-	
-	@ManyToOne
-	@JoinColumn(name = "aplicacion_client_id", nullable = false)
-	private Aplicacion aplicacion ;
-	
 }
