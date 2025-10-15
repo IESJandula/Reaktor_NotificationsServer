@@ -19,17 +19,19 @@ import lombok.NoArgsConstructor;
 @Data
 public class HistoricoAplicacion 
 {
-	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id ;
 	
+	@Column
 	private String nombre ;
 	
+	@Column
 	private LocalDate fecha ;
 	
+	@Column
 	private int notificaciones ;
 	
+	@Column
 	private String tipo ;	
-	
 }

@@ -22,10 +22,10 @@ import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebHoyDto;
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
-import es.iesjandula.reaktor.notifications_server.models.NotificacionWebAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
-import es.iesjandula.reaktor.notifications_server.models.NotificacionWeb;
-import es.iesjandula.reaktor.notifications_server.models.NotificacionWebUsuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_web.NotificacionWeb;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
 import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebUsuarioRepository;
@@ -152,6 +152,9 @@ public class NotificationsWebController
 
 		// Guardamos la notificación web de usuario en la base de datos
 		this.notificacionWebUsuarioRepository.saveAndFlush((NotificacionWebUsuario) notificacionWebUsuario);
+
+		// Decrementamos 
+		usuario.set
 	}
 
 	/**

@@ -1,15 +1,14 @@
-package es.iesjandula.reaktor.notifications_server.models;
+package es.iesjandula.reaktor.notifications_server.models.notificacion_calendar;
 
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
 
+import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.aplicacion.NotificacionCalendarInvitadosAplicacion;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -21,26 +20,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Inheritance(strategy = InheritanceType.JOINED)
 public class NotificacionCalendar 
 {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id ;
-	
+	@Column
 	private LocalDate fechaCreacion ;
 	
+	@Column
 	private String titulo ;
 	
+	@Column
 	private Date fechaInicio ;
 	
+	@Column
 	private Date fechaFin ;
 	
-	@ManyToOne
-	@JoinColumn(name = "aplicacion_client_id", nullable = false)
-	private Aplicacion aplicacion ;
-	
 	@OneToMany(mappedBy = "notificacion")
-	private List<NotificacionCalendarInvitado> invitados ;
-	
+	private List<NotificacionCalendarInvitadosAplicacion> invitadosAplicacion ;
 }

@@ -1,10 +1,10 @@
 package es.iesjandula.reaktor.notifications_server.models;
 
-import java.util.Arrays;
 import java.util.List;
 
-import es.iesjandula.reaktor.notifications_server.utils.Constants;
-import jakarta.persistence.Column;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.aplicacion.NotificacionCalendarAplicacion;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.aplicacion.NotificacionEmailAplicacion;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -22,68 +22,52 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class Aplicacion
+public class Aplicacion extends Actor
 {
     /** Atributo - Nombre descriptivo de la aplicación */
     @Id
     private String nombre ;
-
-    /** Atributo - Roles asociados a la aplicación */
-    @Column
-    private String roles ;
     
-    private int notifHoyCalendar ;
-    
-    private int notifMaxCalendar ;
-    
-    private int notifHoyEmail ;
-    
-    private int notifMaxEmail ;
-    
-    private int notifHoyWeb ;
-    
-    private int notifMaxWeb ;
-    
+    /** Atributo - Notificaciones de calendario */
     @OneToMany(mappedBy = "aplicacion")
-    private List<NotificacionCalendar> notificacionesCalendars ;
+    private List<NotificacionCalendarAplicacion> notificacionesCalendarsAplicacion ;
     
+    /** Atributo - Notificaciones de email */
     @OneToMany(mappedBy = "aplicacion")
-    private List<NotificacionEmail> notificacionesEmails ;
+    private List<NotificacionEmailAplicacion> notificacionesEmailsAplicacion ;
     
+    /** Atributo - Notificaciones de web */
     @OneToMany(mappedBy = "aplicacion")
-    private List<NotificacionWebUsuario> notificacionesWebs ;
+    private List<NotificacionWebAplicacion> notificacionesWebsAplicacion ;
 
     /**
-     * @return lista de roles deserializada
+     * @return true si las aplicaciones son iguales, false en caso contrario
      */
-    public List<String> getRolesList()
+    @Override
+    public boolean equals(Object obj)
     {
-        return Arrays.asList(this.roles.split(Constants.STRING_COMA)) ;
+        if (obj == null)
+        {
+            return false;
+        }
+        if (this == obj)
+        {
+            return true;
+        }
+        if (!(obj instanceof Aplicacion))
+        {
+            return false;
+        }
+
+        return this.nombre.equals(((Aplicacion) obj).nombre);
     }
 
     /**
-     * Setter para establecer los roles desde una lista.
-     * 
-     * @param rolesList lista de roles
+     * @return hashcode de la aplicación
      */
-    public void setRolesList(List<String> rolesList) {
-        this.roles = null;
-
-        if (rolesList != null && !rolesList.isEmpty()) {
-            StringBuilder rolesStringBuilder = new StringBuilder();
-
-            for (int i = 0; i < rolesList.size(); i++) {
-                // Añadimos el rol
-                rolesStringBuilder.append(rolesList.get(i));
-
-                // Si no es el último, añadimos una coma
-                if (i < rolesList.size() - 1) {
-                    rolesStringBuilder.append(Constants.STRING_COMA);
-                }
-            }
-
-            // Convierte el StringBuilder a cadena
-            this.roles = rolesStringBuilder.toString();
-        }
+    @Override
+    public int hashCode()
+    {
+        return this.nombre.hashCode();
     }
 }

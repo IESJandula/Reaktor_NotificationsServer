@@ -1,8 +1,9 @@
-package es.iesjandula.reaktor.notifications_server.models;
+package es.iesjandula.reaktor.notifications_server.models.notificacion_web;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
@@ -13,33 +14,41 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "notificacion_web")
-@Inheritance(strategy = InheritanceType.JOINED)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@Inheritance(strategy = InheritanceType.JOINED)
 public class NotificacionWeb 
 {
 	/** Atributo - Fecha de creación */
+	@Column
 	private LocalDate fechaCreacion ;
 	
 	/** Atributo - Texto */
+	@Column
 	private String texto ;
+
+	/** Atributo - Fecha de inicio */
+	@Column
+	private LocalDate fechaInicio ;
 	
 	/** Atributo - Hora de inicio */
+	@Column
 	private LocalTime horaInicio ;
 	
 	/** Atributo - Fecha de fin */
+	@Column
 	private LocalDate fechaFin ;
 	
 	/** Atributo - Hora de fin */
+	@Column
 	private LocalTime horaFin ;
 	
 	/** Atributo - Roles */
+	@Column
 	private String roles ;
 	
 	/** Atributo - Nivel */
+	@Column
 	private String nivel ;
-	
-	/** Atributo - Fecha de inicio */
-	private LocalDate fechaInicio ;
 }

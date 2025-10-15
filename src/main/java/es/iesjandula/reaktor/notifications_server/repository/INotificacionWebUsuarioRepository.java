@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import es.iesjandula.reaktor.notifications_server.models.NotificacionWebUsuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
 
 public interface INotificacionWebUsuarioRepository extends JpaRepository<NotificacionWebUsuario, Long>
 {

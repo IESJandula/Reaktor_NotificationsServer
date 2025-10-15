@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class Usuario
+public class Usuario extends Actor
 {
 	/** Atributo - Email */
 	@Id
@@ -35,53 +35,12 @@ public class Usuario
 	@Column
 	private String apellidos ;
 	
-	/** Atributo - Lista de roles */
-	@Column
-	private String roles ;
-
 	/** Atributo - Departamento */
 	@Column
 	private String departamento ;
 	
+	/** Atributo - Fecha de nacimiento */
+	@Column
 	private Date fechaNacimiento ;
-	
-    /**
-     * @return lista de roles deserializada
-     */
-    public List<String> getRolesList()
-    {
-        return Arrays.asList(this.roles.split(Constants.STRING_COMA)) ;
-    }
-
-    /**
-     * Setter para establecer los roles desde una lista
-     * 
-     * @param rolesList lista de roles
-     */
-    public void setRolesList(List<String> rolesList)
-    {
-    	this.roles = null ;
-    	
-        if (rolesList != null && !rolesList.isEmpty())
-        {
-
-	        StringBuilder rolesStringBuilder = new StringBuilder();
-	
-	        for (int i = 0 ; i < rolesList.size() ; i++)
-	        {
-	        	// Añadimos el role 
-	            rolesStringBuilder.append(rolesList.get(i)) ;
-	            
-	            // Si no es el último, añadimos una coma
-	            if (i < rolesList.size() - 1)
-	            {
-	                rolesStringBuilder.append(Constants.STRING_COMA) ;
-	            }
-	        }
-	
-	        // Convierte el StringBuilder a cadena
-	        this.roles = rolesStringBuilder.toString() ;
-        }
-    }
 }
 
