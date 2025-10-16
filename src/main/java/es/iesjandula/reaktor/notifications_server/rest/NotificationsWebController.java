@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.notifications_server.rest;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +23,7 @@ import es.iesjandula.reaktor.base.security.models.DtoAplicacion;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebHoyDto;
+import es.iesjandula.reaktor.notifications_server.models.Actor;
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.NotificacionWeb;
@@ -39,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NotificationsWebController 
 {
-	
 	@Autowired
 	private IAplicacionRepository aplicacionRepository ;
 
@@ -51,6 +53,15 @@ public class NotificationsWebController
 
 	@Autowired
 	private INotificacionWebAplicacionRepository notificacionWebAplicacionRepository ;
+
+	@Value("${" + Constants.REAKTOR_NOTIFICATIONES_MAX_CALENDAR + "}")
+	private int notifMaxCalendar ;
+
+	@Value("${" + Constants.REAKTOR_NOTIFICATIONES_MAX_EMAIL + "}")
+	private int notifMaxEmail ;
+
+	@Value("${" + Constants.REAKTOR_NOTIFICATIONS_MAX_WEB + "}")
+	private int notifMaxWeb ;
 
 	@RequestMapping(method = RequestMethod.POST, value = "/user")
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
@@ -66,7 +77,15 @@ public class NotificationsWebController
 		try 
 	    {
 			// Obtenemos el usuario de la base de datos
-			Usuario usuarioDatabase = this.obtenerUsuario(usuario);
+			Usuario usuarioDatabase = this.obtenerUsuario(usuario) ;
+
+			if (usuarioDatabase.getNotifHoyWeb() >= usuarioDatabase.getNotifMaxWeb())
+			{
+				String errorMessage = "No se puede crear la notificación web porque se ha alcanzado el límite de notificaciones web";
+				
+				log.error(errorMessage);
+				throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
+			}
 
 			// Realizamos validaciones previas
 			this.validacionesPreviasNotificacionWebUsuario(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel) ;
@@ -121,6 +140,9 @@ public class NotificationsWebController
 			usuarioDatabase.setDepartamento(usuario.getDepartamento());
 			usuarioDatabase.setRoles(String.join(",", usuario.getRoles()));
 
+			// Seteamos los campos comunes de la aplicación
+			this.setearCamposComunesActores(usuarioDatabase);
+
 			// Guardamos el usuario en la base de datos
 			this.usuarioRepository.saveAndFlush(usuarioDatabase);
 		}
@@ -153,8 +175,11 @@ public class NotificationsWebController
 		// Guardamos la notificación web de usuario en la base de datos
 		this.notificacionWebUsuarioRepository.saveAndFlush((NotificacionWebUsuario) notificacionWebUsuario);
 
-		// Decrementamos 
-		usuario.set
+		// Incrementamos el número de notificaciones web del usuario
+		usuario.setNotifHoyWeb(usuario.getNotifHoyWeb() + 1);
+
+		// Guardamos el usuario en la base de datos
+		this.usuarioRepository.saveAndFlush(usuario);
 	}
 
 	/**
@@ -206,6 +231,14 @@ public class NotificationsWebController
 			// Obtenemos la aplicación de la base de datos
 			Aplicacion aplicacionDatabase = this.obtenerAplicacion(aplicacion);
 
+			if (aplicacionDatabase.getNotifHoyWeb() >= aplicacionDatabase.getNotifMaxWeb())
+			{
+				String errorMessage = "No se puede crear la notificación web porque se ha alcanzado el límite de notificaciones web";
+				
+				log.error(errorMessage);
+				throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
+			}
+
 			// Validamos los campos de la aplicación
 			this.validacionesPreviasNotificacionWebApp(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
 
@@ -246,15 +279,43 @@ public class NotificationsWebController
 			// ... creamos una nueva instancia de aplicación
 			aplicacionDatabase = new Aplicacion() ;
 
+			// Seteamos los roles de la aplicación
+			aplicacionDatabase.setRoles(String.join(",", aplicacion.getRoles()));
+
 			// Seteamos los atributos del usuario
 			aplicacionDatabase.setNombre(aplicacion.getNombre());
-			aplicacionDatabase.setRoles(String.join(",", aplicacion.getRoles()));
+
+			// Seteamos los campos comunes de la aplicación
+			this.setearCamposComunesActores(aplicacionDatabase);
 
 			// Guardamos la aplicación en la base de datos
 			this.aplicacionRepository.saveAndFlush(aplicacionDatabase);
 		}
 
 		return aplicacionDatabase;
+	}
+
+	/**
+	 * Método auxiliar para setear los campos comunes de un actor
+	 * @param actor Actor
+	 */
+	private void setearCamposComunesActores(Actor actor)
+	{
+		// Seteamos la fecha de la última notificación
+		LocalDateTime ahora = LocalDateTime.now() ;
+		actor.setFechaUltimaNotificacionCalendar(ahora) ;
+		actor.setFechaUltimaNotificacionEmail(ahora) ;
+		actor.setFechaUltimaNotificacionWeb(ahora) ;
+
+		// Inicializamos el número de notificaciones hoy
+		actor.setNotifHoyCalendar(0) ;
+		actor.setNotifHoyEmail(0) ;
+		actor.setNotifHoyWeb(0) ;
+
+		// Inicializamos el número de notificaciones máximas
+		actor.setNotifMaxCalendar(this.notifMaxCalendar) ;
+		actor.setNotifMaxEmail(this.notifMaxEmail) ;
+		actor.setNotifMaxWeb(this.notifMaxWeb) ;
 	}
 
 	/**
@@ -349,6 +410,12 @@ public class NotificationsWebController
 
 		// Guardamos la notificación web de aplicación en la base de datos
 		this.notificacionWebAplicacionRepository.saveAndFlush((NotificacionWebAplicacion) notificacionWeb);
+
+		// Incrementamos el número de notificaciones web de la aplicación
+		aplicacion.setNotifHoyWeb(aplicacion.getNotifHoyWeb() + 1);
+
+		// Guardamos la aplicación en la base de datos
+		this.aplicacionRepository.saveAndFlush(aplicacion);	
 	}
 
 	/**

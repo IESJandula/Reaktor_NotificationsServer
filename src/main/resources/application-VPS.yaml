@@ -23,3 +23,8 @@ reaktor:
   privateKeyFile: ${PRIVATE_KEY_FILE}
   googleCredentialsFile: ${GOOGLE_CREDENTIALS_FILE}
   urlCors: https://somos.iesjandula.es
+  notifications:
+    max:
+      calendar: 10
+      email: 10
+      web: 10

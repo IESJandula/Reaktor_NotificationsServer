@@ -26,5 +26,17 @@ public class Constants
 	
 	/** Error - Error en la eliminación de la notificación web */
 	public static final int ERR_NOTIFICATIONS_WEB_DELETION		  = 102 ;
-}
 
+	/*********************************************************/
+	/****************** Propiedades YAML *********************/
+	/*********************************************************/
+
+	/** Propiedades YAML - Notificaciones - Calendar */
+	public static final String REAKTOR_NOTIFICATIONES_MAX_CALENDAR = "reaktor.notifications.max.calendar" ;
+
+	/** Propiedades YAML - Notificaciones - Email */
+	public static final String REAKTOR_NOTIFICATIONES_MAX_EMAIL    = "reaktor.notifications.max.email" ;
+
+	/** Propiedades YAML - Notificaciones - Web */
+	public static final String REAKTOR_NOTIFICATIONS_MAX_WEB       = "reaktor.notifications.max.web" ;
+}
