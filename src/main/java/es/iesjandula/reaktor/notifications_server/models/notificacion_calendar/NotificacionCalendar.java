@@ -1,14 +1,15 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_calendar;
 
-import java.sql.Date;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.aplicacion.NotificacionCalendarInvitadosAplicacion;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -20,9 +21,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Inheritance(strategy = InheritanceType.JOINED)
 public class NotificacionCalendar 
 {
+	/** Atributo - Id */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id ;
+
 	@Column
 	private LocalDate fechaCreacion ;
 	
@@ -35,6 +40,6 @@ public class NotificacionCalendar
 	@Column
 	private Date fechaFin ;
 	
-	@OneToMany(mappedBy = "notificacion")
+	@OneToMany(mappedBy = "notificacionId")
 	private List<NotificacionCalendarInvitadosAplicacion> invitadosAplicacion ;
 }

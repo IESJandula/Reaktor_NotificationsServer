@@ -26,10 +26,10 @@ public class NotificacionEmailCopiaAplicacion
 	@ManyToOne
     @MapsId("notificacionId")
     @JoinColumn(name = "notificacion_id")
-    private NotificacionEmailAplicacion notificacion;
+    private NotificacionEmailAplicacion notificacionId;
 
     @ManyToOne
     @MapsId("aplicacionNombre")
     @JoinColumn(name = "aplicacion_nombre")
-    private Aplicacion aplicacion;
+    private Aplicacion aplicacionNombre;
 }

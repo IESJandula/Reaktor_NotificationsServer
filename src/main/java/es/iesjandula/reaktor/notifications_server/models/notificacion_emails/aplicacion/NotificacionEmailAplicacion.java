@@ -5,12 +5,15 @@ import java.util.Objects;
 
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmail;
+import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionAplicacionId;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -22,23 +25,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class NotificacionEmailAplicacion extends NotificacionEmail
+public class NotificacionEmailAplicacion
 {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id ;
+	@EmbeddedId
+	private NotificacionAplicacionId id ;
 	
 	@ManyToOne
-	@JoinColumn(name = "aplicacion_client_id", nullable = false)
-	private Aplicacion aplicacion ;
+    @MapsId("aplicacionNombre")
+    @JoinColumn(name = "aplicacion_nombre")
+	private Aplicacion aplicacionNombre;
 	
-	@OneToMany(mappedBy = "notificacion")
+	@OneToMany(mappedBy = "notificacionId")
     private List<NotificacionEmailParaAplicacion> paraUsuariosAplicacion;
 
-    @OneToMany(mappedBy = "notificacion")
+    @OneToMany(mappedBy = "notificacionId")
     private List<NotificacionEmailCopiaAplicacion> copiaUsuariosAplicacion;
 
-    @OneToMany(mappedBy = "notificacion")
+    @OneToMany(mappedBy = "notificacionId")
     private List<NotificacionEmailCopiaOcultaAplicacion> copiaOcultaUsuariosAplicacion;
 
 	@Override

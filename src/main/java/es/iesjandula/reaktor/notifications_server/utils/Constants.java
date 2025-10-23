@@ -24,8 +24,8 @@ public class Constants
 	/** Error - Error en la creación de la notificación web */
 	public static final int ERR_NOTIFICATIONS_WEB_CREATION		  = 101 ;
 	
-	/** Error - Error en la eliminación de la notificación web */
-	public static final int ERR_NOTIFICATIONS_WEB_DELETION		  = 102 ;
+	/** Error - Error en el cambio de estado de la notificación web */
+	public static final int ERR_NOTIFICATIONS_WEB_CHANGE_STATE	  = 102 ;
 
 	/*********************************************************/
 	/****************** Propiedades YAML *********************/

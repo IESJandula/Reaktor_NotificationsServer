@@ -42,7 +42,7 @@ public class NotificationsManagerController
 	@Value("${reaktor.firebase_server_url}")
 	private String firebaseServerUrl;
 	
-	@RequestMapping(method = RequestMethod.GET, value = "notificacionesEnviadas")
+	@RequestMapping(method = RequestMethod.GET, value = "/notificacionesEnviadas")
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
 	public ResponseEntity<?> obtenerResumen(@RequestHeader("nombre") String nombre, @RequestHeader("client_id") String clientId)
 	{

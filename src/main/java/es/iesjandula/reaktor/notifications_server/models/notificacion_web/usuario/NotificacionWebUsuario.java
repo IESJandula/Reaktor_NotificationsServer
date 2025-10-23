@@ -11,7 +11,6 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -19,8 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class NotificacionWebUsuario extends NotificacionWeb
+public class NotificacionWebUsuario
 {
 	@EmbeddedId
 	private NotificacionUsuarioId id ;
@@ -28,10 +26,10 @@ public class NotificacionWebUsuario extends NotificacionWeb
 	@ManyToOne
     @MapsId("notificacionId")
     @JoinColumn(name = "notificacion_id")
-	private NotificacionWeb notificacion ;
+	private NotificacionWeb notificacionId ;
 	
 	@ManyToOne
     @MapsId("usuarioEmail")
     @JoinColumn(name = "usuario_email")
-	private Usuario usuario ;
+	private Usuario usuarioEmail ;
 }

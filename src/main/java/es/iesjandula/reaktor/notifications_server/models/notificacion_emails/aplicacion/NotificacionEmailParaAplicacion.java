@@ -1,7 +1,6 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_emails.aplicacion;
 
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
-import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.aplicacion.NotificacionEmailAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionAplicacionId;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -26,10 +25,10 @@ public class NotificacionEmailParaAplicacion
 	@ManyToOne
     @MapsId("notificacionId")
     @JoinColumn(name = "notificacion_id")
-    private NotificacionEmailAplicacion notificacion;
+    private NotificacionEmailAplicacion notificacionId;
 
     @ManyToOne
     @MapsId("aplicacionNombre")
     @JoinColumn(name = "aplicacion_nombre")
-    private Aplicacion aplicacion;
+    private Aplicacion aplicacionNombre;
 }

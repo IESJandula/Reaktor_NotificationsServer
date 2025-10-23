@@ -3,8 +3,12 @@ package es.iesjandula.reaktor.notifications_server.models.notificacion_web;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.springframework.data.annotation.Id;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
@@ -20,6 +24,11 @@ import lombok.NoArgsConstructor;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class NotificacionWeb 
 {
+	/** Atributo - Id */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id ;
+
 	/** Atributo - Fecha de creación */
 	@Column
 	private LocalDate fechaCreacion ;
@@ -51,4 +60,8 @@ public class NotificacionWeb
 	/** Atributo - Nivel */
 	@Column
 	private String nivel ;
+
+	/** Atributo - Activo */
+	@Column
+	private boolean activo ;
 }

@@ -1,16 +1,13 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.aplicacion;
 
-import java.util.List;
-
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.NotificacionCalendar;
+import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionAplicacionId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,18 +18,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class NotificacionCalendarAplicacion extends NotificacionCalendar
+public class NotificacionCalendarAplicacion
 {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id ;
+	@EmbeddedId
+	private NotificacionAplicacionId id ;
 
 	@ManyToOne
-	@JoinColumn(name = "aplicacion_nombre", nullable = false)
-	private Aplicacion aplicacion ;
+    @MapsId("aplicacionNombre")
+    @JoinColumn(name = "aplicacion_nombre")
+	private Aplicacion aplicacionNombre;
 	
-	@OneToMany(mappedBy = "notificacion")
-	private List<NotificacionCalendarInvitadosAplicacion> invitadosAplicacion ;
+	@ManyToOne
+    @MapsId("notificacionId")
+    @JoinColumn(name = "notificacion_id")
+	private NotificacionCalendar notificacionId;
 
 	@Override
 	public boolean equals(Object obj)

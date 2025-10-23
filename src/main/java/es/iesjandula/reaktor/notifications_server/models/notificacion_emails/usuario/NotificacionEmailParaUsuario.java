@@ -25,10 +25,10 @@ public class NotificacionEmailParaUsuario
 	@ManyToOne
     @MapsId("notificacionId")
     @JoinColumn(name = "notificacion_id")
-    private NotificacionEmailUsuario notificacionUsuario;
+    private NotificacionEmailUsuario notificacionId;
 
     @ManyToOne
     @MapsId("usuarioEmail")
     @JoinColumn(name = "usuario_email")
-    private Usuario usuario;
+    private Usuario usuarioEmail;
 }
