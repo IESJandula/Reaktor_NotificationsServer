@@ -8,9 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 	
 import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebVigentesDto;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
-import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionUsuarioId;
 
-public interface INotificacionWebUsuarioRepository extends JpaRepository<NotificacionWebUsuario, NotificacionUsuarioId>
+public interface INotificacionWebUsuarioRepository extends JpaRepository<NotificacionWebUsuario, Long>
 {
 	/**
 	 * Método para contar las notificaciones vigentes de un usuario
@@ -36,6 +35,6 @@ public interface INotificacionWebUsuarioRepository extends JpaRepository<Notific
 	 */
 	@Query("SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebVigentesDto(n.texto, n.fechaInicio, n.horaInicio, n.fechaFin, n.horaFin, n.roles, n.nivel) " +
 		   "FROM NotificacionWebUsuario n " + 
-		   "WHERE n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.id.usuarioEmail = :email")
+		   "WHERE n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.usuario.email = :email")
 	List<NotificacionesWebVigentesDto> buscarNotificacionesVigentesUsuariosPorUsuario(String email);
 }

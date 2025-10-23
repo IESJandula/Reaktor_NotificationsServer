@@ -1,27 +1,21 @@
 package es.iesjandula.reaktor.notifications_server.models;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "actor")
+@MappedSuperclass
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@Inheritance(strategy = InheritanceType.JOINED)
-public class Actor
+public abstract class Actor
 {
     /** Atributo - Roles asociados a la aplicación */
     @Column

@@ -1,19 +1,16 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario;
 
 import java.util.List;
-import java.util.Objects;
 
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
-import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionUsuarioId;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmail;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -21,49 +18,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class NotificacionEmailUsuario
-{
-	@EmbeddedId
-	private NotificacionUsuarioId id ;
-	
+@EqualsAndHashCode(callSuper = true)
+public class NotificacionEmailUsuario extends NotificacionEmail
+{	
 	@ManyToOne
-	@MapsId("usuarioEmail")
-    @JoinColumn(name = "usuario_email")
-	private Usuario usuarioEmail;
+	private Usuario usuario;
 	
-	@OneToMany(mappedBy = "notificacionId")
+	@OneToMany(mappedBy = "notificacionEmailUsuario")
     private List<NotificacionEmailParaUsuario> paraUsuariosUsuario;
 
-	@OneToMany(mappedBy = "notificacionId")
+	@OneToMany(mappedBy = "notificacionEmailUsuario")
     private List<NotificacionEmailCopiaUsuario> copiaUsuariosUsuario;
 
-    @OneToMany(mappedBy = "notificacionId")
+    @OneToMany(mappedBy = "notificacionEmailUsuario")
     private List<NotificacionEmailCopiaOcultaUsuario> copiaOcultaUsuariosUsuario;
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == null)
-		{
-			return false;
-		}
-		if (this == obj)
-		{
-			return true;
-		}
-		if (!(obj instanceof NotificacionEmailUsuario))
-		{
-			return false;
-		}
-
-		NotificacionEmailUsuario other = (NotificacionEmailUsuario) obj;
-
-		return Objects.equals(id, other.id);
-	}	
-
-	@Override
-	public int hashCode()
-	{
-		return Objects.hash(id);
-	}
 }

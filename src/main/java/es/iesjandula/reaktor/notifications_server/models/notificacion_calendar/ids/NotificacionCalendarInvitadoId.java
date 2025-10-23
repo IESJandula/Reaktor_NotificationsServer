@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.notifications_server.models.ids;
+package es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.ids;
 
 import java.io.Serializable;
 
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class NotificacionAplicacionId implements Serializable
+public class NotificacionCalendarInvitadoId implements Serializable
 {
     /**
      * Serialización de la clase para persistencia.
@@ -22,7 +22,7 @@ public class NotificacionAplicacionId implements Serializable
     private Long notificacionId ;
 
     /**
-     * Nombre de la aplicación.
+     * Identificador de la notificación.
      */
-    private String aplicacionNombre ;
+    private String usuarioEmail ;
 }

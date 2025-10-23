@@ -8,9 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebVigentesDto;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
-import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionAplicacionId;
 
-public interface INotificacionWebAplicacionRepository extends JpaRepository<NotificacionWebAplicacion, NotificacionAplicacionId>
+public interface INotificacionWebAplicacionRepository extends JpaRepository<NotificacionWebAplicacion, Long>
 {
 	/**
 	 * Método para contar las notificaciones vigentes de una aplicación

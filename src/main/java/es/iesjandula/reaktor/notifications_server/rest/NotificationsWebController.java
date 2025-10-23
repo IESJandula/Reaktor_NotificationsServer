@@ -26,8 +26,6 @@ import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebVigentes
 import es.iesjandula.reaktor.notifications_server.models.Actor;
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
-import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionAplicacionId;
-import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionUsuarioId;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.NotificacionWeb;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
@@ -212,23 +210,14 @@ public class NotificationsWebController
 	 */
 	private void crearNotificacionWebUsuario(Usuario usuario, String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String roles, String nivel)
 	{
-		// Creamos una instancia de notificación web
-		NotificacionWeb notificacionWeb = this.crearNotificacionWeb(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
-
 		// Creamos una instancia de notificación web de usuario
 		NotificacionWebUsuario notificacionWebUsuario = new NotificacionWebUsuario();
 
-		// Seteamos el id de la notificación
-		NotificacionUsuarioId id = new NotificacionUsuarioId(notificacionWeb.getId(), usuario.getEmail());
-
-		// Seteamos el id de la notificación web de usuario
-		notificacionWebUsuario.setId(id);
-
-		// Seteamos la notificación web
-		notificacionWebUsuario.setNotificacionId(notificacionWeb);
+		// Creamos una instancia de notificación web
+		this.crearNotificacionWebCamposComunes(notificacionWebUsuario, texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
 
 		// Seteamos el usuario
-		notificacionWebUsuario.setUsuarioEmail(usuario);
+		notificacionWebUsuario.setUsuario(usuario);
 
 		// Guardamos la notificación web de usuario en la base de datos
 		this.notificacionWebUsuarioRepository.saveAndFlush(notificacionWebUsuario);
@@ -256,63 +245,29 @@ public class NotificationsWebController
 			// Si el usuario es Dirección o Administrador, puede cambiar el estado de cualquier notificación
 			if (usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) || usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR))
 			{
-				// Cambiamos el estado de la notificación y obtenemos la notificación web
-				NotificacionWeb notificacion = this.cambiarEstadoNotificacionWebUsuarioInternal(id);
+				// Cambiamos el estado de la notificación web de usuario y obtenemos la notificación web de usuario
+				NotificacionWebUsuario notificacionUsuario = this.cambiarEstadoNotificacionWebUsuarioInternal(id);
 
-				// Obtenemos la notificación web de usuario
-				NotificacionWebUsuario notificacionWebUsuario = this.notificacionWebUsuarioRepository.findByNotificacionIdAndUsuarioEmail(notificacion.getId(), usuario.getEmail());
-				
 				// Actualizar el número de notificaciones web del usuario
-				this.cambiarEstadoNotificacionWebUsuarioUsuarioActualizarNumeroNotificaciones(usuario.getEmail(), notificacion);
+				this.cambiarEstadoNotificacionWebUsuarioActualizarNumeroNotificaciones(notificacionUsuario);
 			}
 			else
 			{
-                // Buscamos al usuario en la BBDD
-				Optional<Usuario> optionalUsuario = this.usuarioRepository.findById(usuario.getEmail()) ;
+                // Buscamos la notificación web de usuario por el id
+				NotificacionWebUsuario notificacionUsuario = this.buscarNotificacionWebUsuarioPorId(id);
 
-				// Verificamos si existe el usuario
-				Usuario usuarioDatabase = optionalUsuario.get() ;
-
-				// Si existe el usuario ...
-				if (usuarioDatabase != null)
+				// Verificamos si el usuario es el propietario de la notificación
+				if (!notificacionUsuario.getUsuario().getEmail().equals(usuario.getEmail()))
 				{
-					// ... buscamos la notificación por el id y el usuario
-					Optional<NotificacionWebUsuario> optionalNotificacionUsuario = this.notificacionWebUsuarioRepository.findById(id) ;
+					String errorMessage = "No tienes permisos para cambiar el estado de esta notificación";
 
-					// Verificamos si existe la notificación
-					if (optionalNotificacionUsuario.isPresent())
-					{
-						// Seteamos el estado de la notificación
-						notificacionWebUsuario.setActivo(false);
-					}
+					log.error(errorMessage);
+					throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CHANGE_STATE, errorMessage);
 				}
 
-				// Creamos el id de la notificación
-				NotificacionUsuarioId id = new NotificacionUsuarioId(id, usuario.getEmail()) ;
-
-				// Buscamos la notificación por el id
-				Optional<NotificacionWebUsuario> optionalNotificacionUsuario = this.notificacionWebUsuarioRepository.findById(id) ;
+				// Actualizar el número de notificaciones web del usuario
+				this.cambiarEstadoNotificacionWebUsuarioActualizarNumeroNotificaciones(notificacionUsuario);
 			}
-			else
-			{
-				// Buscamos la notificación por el id y el usuario
-
-			// Creamos el id de la notificación
-			NotificacionUsuarioId idNotificacion = new NotificacionUsuarioId(id, usuario.getEmail()) ;
-
-            // Buscar la notificación
-            NotificacionWebUsuario notificacion = this.notificacionWebUsuarioRepository.deleteById(idNotificacion) ;
-
-            if (notificacion == null) 
-            {
-                String errorMessage = "No se encontró la notificación con id: " + id;
-                log.error(errorMessage);
-
-                throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_DELETION, errorMessage);
-            }
-
-            // Eliminar
-            notificacionWebRepository.delete(notificacion);
 
             return ResponseEntity.status(200).build() ;
         } 
@@ -336,10 +291,31 @@ public class NotificationsWebController
 	 * @return la notificación web
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	private NotificacionWeb cambiarEstadoNotificacionWebUsuarioInternal(Long id) throws NotificationsServerException
+	private NotificacionWebUsuario cambiarEstadoNotificacionWebUsuarioInternal(Long id) throws NotificationsServerException
+	{
+		// Buscamos la notificación web de usuario por el id
+		NotificacionWebUsuario notificacionUsuario = this.buscarNotificacionWebUsuarioPorId(id);
+
+		// Seteamos el estado de la notificación al contrario del que está
+		notificacionUsuario.setActivo(!notificacionUsuario.isActivo());
+
+		// Guardamos la notificación en la base de datos
+		this.notificacionWebUsuarioRepository.saveAndFlush(notificacionUsuario);
+
+		// Devolvemos la notificación web
+		return notificacionUsuario;
+	}
+
+	/**
+	 * Método auxiliar para buscar una notificación web de usuario por el id
+	 * @param id Id de la notificación web
+	 * @return la notificación web de usuario
+	 * @throws NotificationsServerException Excepción de notificaciones web
+	 */
+	private NotificacionWebUsuario buscarNotificacionWebUsuarioPorId(Long id) throws NotificationsServerException
 	{
 		// Buscamos la notificación por el id
-		Optional<NotificacionWeb> optionalNotificacion = this.notificacionWebRepository.findById(id) ;
+		Optional<NotificacionWebUsuario> optionalNotificacion = this.notificacionWebUsuarioRepository.findById(id) ;
 
 		// Verificamos si existe la notificación
 		if (!optionalNotificacion.isPresent())
@@ -351,53 +327,29 @@ public class NotificationsWebController
 		}
 
 		// Obtenemos la notificación
-		NotificacionWeb notificacion = optionalNotificacion.get() ;
-
-		// Seteamos el estado de la notificación al contrario del que está
-		notificacion.setActivo(!notificacion.isActivo());
-
-		// Guardamos la notificación en la base de datos
-		this.notificacionWebRepository.saveAndFlush(notificacion);
-
-		// Devolvemos la notificación web
-		return notificacion;
+		return optionalNotificacion.get() ;
 	}
 
 	/**
 	 * Método auxiliar para actualizar el número de notificaciones web del usuario
-	 * @param email Email del usuario
-	 * @param notificacion Notificación web
+	 * @param notificacionUsuario Notificación web de usuario
 	 */
-	private void cambiarEstadoNotificacionWebUsuarioUsuarioActualizarNumeroNotificaciones(String email, NotificacionWeb notificacion)
+	private void cambiarEstadoNotificacionWebUsuarioActualizarNumeroNotificaciones(NotificacionWebUsuario notificacionUsuario)
 	{
-		// Buscamos el usuario en la base de datos
-		Optional<Usuario> optionalUsuario = this.usuarioRepository.findById(notificacion.getUsuarioEmail().getEmail()) ;
-
-		// Verificamos si existe el usuario
-		if (!optionalUsuario.isPresent())
-		{
-			String errorMessage = "No se encontró el usuario con email: " + email;
-			log.error(errorMessage);
-			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CHANGE_STATE, errorMessage);
-		}
-
-		// Obtenemos el usuario
-		Usuario usuarioDatabase = optionalUsuario.get() ;
-
 		// Si la notificación está activa, decrementamos el número de notificaciones web del usuario, si no, incrementamos
-		if (notificacion.isActivo())
+		if (notificacionUsuario.isActivo())
 		{
 			// Decrementamos el número de notificaciones web del usuario
-			usuarioDatabase.setNotifHoyWeb(usuarioDatabase.getNotifHoyWeb() - 1);
+			notificacionUsuario.getUsuario().setNotifHoyWeb(notificacionUsuario.getUsuario().getNotifHoyWeb() - 1);
 		}
 		else
 		{
 			// Incrementamos el número de notificaciones web del usuario
-			usuarioDatabase.setNotifHoyWeb(usuarioDatabase.getNotifHoyWeb() + 1);
+			notificacionUsuario.getUsuario().setNotifHoyWeb(notificacionUsuario.getUsuario().getNotifHoyWeb() + 1);
 		}
 
 		// Guardamos el usuario en la base de datos
-		this.usuarioRepository.saveAndFlush(usuarioDatabase);
+		this.usuarioRepository.saveAndFlush(notificacionUsuario.getUsuario());
 	}
 
 	/**
@@ -598,23 +550,14 @@ public class NotificationsWebController
 	 */
 	private void crearNotificacionWebApp(Aplicacion aplicacion, String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String roles, String nivel)
 	{
-		// Creamos primero una notificación web
-		NotificacionWeb notificacionWeb = this.crearNotificacionWeb(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
-
-		// Creamos el id de la notificación
-		NotificacionAplicacionId idNotificacion = new NotificacionAplicacionId(notificacionWeb.getId(), aplicacion.getNombre());
-
 		// Creamos una instancia de notificación web de aplicación
 		NotificacionWebAplicacion notificacionWebAplicacion = new NotificacionWebAplicacion();
 
-		// Seteamos el id de la notificación
-		notificacionWebAplicacion.setId(idNotificacion);
-
-		// Seteamos la notificación web
-		notificacionWebAplicacion.setNotificacionId(notificacionWeb);
+		// Creamos los campos comunes de la notificación web
+		this.crearNotificacionWebCamposComunes(notificacionWebAplicacion, texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
 
 		// Seteamos la aplicación
-		notificacionWebAplicacion.setAplicacionNombre(aplicacion);
+		notificacionWebAplicacion.setAplicacion(aplicacion);
 
 		// Guardamos la notificación web de aplicación en la base de datos
 		this.notificacionWebAplicacionRepository.saveAndFlush(notificacionWebAplicacion);
@@ -622,6 +565,7 @@ public class NotificationsWebController
 
 	/**
 	 * Método auxiliar para crear una notificación web
+	 * @param notificacionWeb Notificación web
 	 * @param texto Texto de la notificación web
 	 * @param fechaInicio Fecha de inicio de la notificación web
 	 * @param horaInicio Hora de inicio de la notificación web
@@ -629,13 +573,9 @@ public class NotificationsWebController
 	 * @param horaFin Hora de fin de la notificación web
 	 * @param roles Roles de la notificación web
 	 * @param nivel Nivel de la notificación web
-	 * @return Notificación web creada
 	 */
-	private NotificacionWeb crearNotificacionWeb(String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String roles, String nivel)
+	private void crearNotificacionWebCamposComunes(NotificacionWeb notificacionWeb, String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String roles, String nivel)
 	{
-		// Creamos una instancia de notificación web
-		NotificacionWeb notificacionWeb = new NotificacionWeb();
-
 		// Seteamos la fecha de creación
 		notificacionWeb.setFechaCreacion(LocalDate.now());
 
@@ -658,12 +598,6 @@ public class NotificationsWebController
 
 		// Seteamos el activo a true
 		notificacionWeb.setActivo(true) ;
-
-		// La almacenamos en la base de datos
-		this.notificacionWebRepository.saveAndFlush(notificacionWeb);
-
-		// Devolvemos la nueva notificación web creada
-		return notificacionWeb ;
 	}
 
 	/**
@@ -710,5 +644,107 @@ public class NotificationsWebController
 		
 		}
 		
+	}
+
+	/**
+	 * Método para eliminar una notificación web de usuario
+	 * @param usuario Usuario extendido
+	 * @param id Id de la notificación web
+	 * @return ResponseEntity con el resultado de la eliminación de la notificación web
+	 */
+    @RequestMapping(method = RequestMethod.DELETE, value = "/apps/{id}")
+    @PreAuthorize("hasAnyRole('" + BaseConstants.ROLE_ADMINISTRADOR + "', '" + BaseConstants.ROLE_DIRECCION + "')")
+	public ResponseEntity<?> cambiarEstadoNotificacionWebAplicacion(@AuthenticationPrincipal DtoAplicacion aplicacion,
+	                                                                @PathVariable("id") Long id)
+	{
+		try
+		{
+			// Cambiamos el estado de la notificación web de usuario y obtenemos la notificación web de usuario
+			NotificacionWebAplicacion notificacionWebAplicacion = this.cambiarEstadoNotificacionWebAplicacionInternal(id);
+
+			// Actualizar el número de notificaciones web del usuario
+			this.cambiarEstadoNotificacionWebAplicacionActualizarNumeroNotificaciones(notificacionWebAplicacion);
+
+			// Devolvemos la respuesta
+			return ResponseEntity.status(200).build() ;
+		}
+		catch (NotificationsServerException firebaseServerServerException)
+		{
+			return ResponseEntity.status(400).body(firebaseServerServerException.getBodyExceptionMessage()) ;
+		}
+		catch (Exception exception) 
+		{
+			String errorMessage = "Error al cambiar el estado de la notificación web";
+			log.error(errorMessage, exception);
+
+			NotificationsServerException NotificationsServerException = new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
+			return ResponseEntity.status(500).body(NotificationsServerException.getBodyExceptionMessage()) ;
+		}
+	}
+
+	/**
+	 * Método auxiliar para cambiar el estado de una notificación web de aplicación
+	 * @param id Id de la notificación web
+	 * @return la notificación web de aplicación
+	 * @throws NotificationsServerException Excepción de notificaciones web
+	 */
+	private NotificacionWebAplicacion cambiarEstadoNotificacionWebAplicacionInternal(Long id) throws NotificationsServerException
+	{
+		// Buscamos la notificación web de aplicación por el id
+		NotificacionWebAplicacion notificacionWebAplicacion = this.buscarNotificacionWebAplicacionPorId(id);
+
+		// Seteamos el estado de la notificación al contrario del que está
+		notificacionWebAplicacion.setActivo(!notificacionWebAplicacion.isActivo());
+
+		// Guardamos la notificación en la base de datos
+		this.notificacionWebAplicacionRepository.saveAndFlush(notificacionWebAplicacion);
+
+		// Devolvemos la notificación web
+		return notificacionWebAplicacion;
+	}
+
+	/**
+	 * Método auxiliar para buscar una notificación web de aplicación por el id
+	 * @param id Id de la notificación web
+	 * @return la notificación web de aplicación
+	 * @throws NotificationsServerException Excepción de notificaciones web
+	 */
+	private NotificacionWebAplicacion buscarNotificacionWebAplicacionPorId(Long id) throws NotificationsServerException
+	{
+		// Buscamos la notificación web de aplicación por el id
+		Optional<NotificacionWebAplicacion> optionalNotificacionWebAplicacion = this.notificacionWebAplicacionRepository.findById(id) ;
+
+		// Verificamos si existe la notificación web de aplicación
+		if (!optionalNotificacionWebAplicacion.isPresent())
+		{
+			String errorMessage = "No se encontró la notificación web de aplicación con id: " + id;
+			log.error(errorMessage);
+			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CHANGE_STATE, errorMessage);
+		}
+
+		// Obtenemos la notificación web de aplicación
+		return optionalNotificacionWebAplicacion.get() ;
+	}
+
+	/**
+	 * Método auxiliar para actualizar el número de notificaciones web de la aplicación
+	 * @param notificacionWebAplicacion Notificación web de aplicación
+	 */
+	private void cambiarEstadoNotificacionWebAplicacionActualizarNumeroNotificaciones(NotificacionWebAplicacion notificacionWebAplicacion)
+	{
+		// Si la notificación está activa, decrementamos el número de notificaciones web de la aplicación, si no, incrementamos
+		if (notificacionWebAplicacion.isActivo())
+		{
+			// Decrementamos el número de notificaciones web de la aplicación
+			notificacionWebAplicacion.getAplicacion().setNotifHoyWeb(notificacionWebAplicacion.getAplicacion().getNotifHoyWeb() - 1);
+		}
+		else
+		{
+			// Incrementamos el número de notificaciones web de la aplicación
+			notificacionWebAplicacion.getAplicacion().setNotifHoyWeb(notificacionWebAplicacion.getAplicacion().getNotifHoyWeb() + 1);
+		}
+
+		// Guardamos la aplicación en la base de datos
+		this.aplicacionRepository.saveAndFlush(notificacionWebAplicacion.getAplicacion());
 	}
 }

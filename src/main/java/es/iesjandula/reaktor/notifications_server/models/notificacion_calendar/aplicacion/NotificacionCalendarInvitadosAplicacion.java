@@ -1,11 +1,7 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.aplicacion;
 
-import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
-import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionAplicacionId;
-import es.iesjandula.reaktor.notifications_server.models.ids.NotificacionUsuarioId;
-import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.ids.NotificacionCalendarInvitadosId;
-import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.usuario.NotificacionCalendarUsuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.ids.NotificacionCalendarInvitadoId;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
@@ -24,12 +20,12 @@ import lombok.NoArgsConstructor;
 public class NotificacionCalendarInvitadosAplicacion 
 {
 	@EmbeddedId
-	private NotificacionCalendarInvitadosId id ;
+	private NotificacionCalendarInvitadoId id ;
 	
 	@ManyToOne
-    @MapsId("notificacionAplicacionId")
-    @JoinColumn(name = "notificacion_aplicacion_id")
-	private NotificacionCalendarAplicacion notificacionAplicacionId;
+    @MapsId("notificacionId")
+    @JoinColumn(name = "notificacion_id")
+	private NotificacionCalendarAplicacion notificacionId ;
 	
 	@ManyToOne
     @MapsId("usuarioEmailInvitado")

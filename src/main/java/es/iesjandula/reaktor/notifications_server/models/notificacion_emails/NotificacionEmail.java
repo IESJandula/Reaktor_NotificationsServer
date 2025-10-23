@@ -2,8 +2,8 @@ package es.iesjandula.reaktor.notifications_server.models.notificacion_emails;
 
 import java.time.LocalDate;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -15,7 +15,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "notificacion_email")
+@Table(name = "notificacion_email")	
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
