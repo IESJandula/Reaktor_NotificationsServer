@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class NotificacionWeb 
+public abstract class NotificacionWeb 
 {
 	/** Atributo - Id */
 	@Id

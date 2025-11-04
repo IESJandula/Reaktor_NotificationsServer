@@ -4,6 +4,9 @@ import java.util.List;
 
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmail;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario.NotificacionEmailCopiaOcultaUsuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario.NotificacionEmailCopiaUsuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario.NotificacionEmailParaUsuario;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -24,12 +27,12 @@ public class NotificacionEmailAplicacion extends NotificacionEmail
 	@ManyToOne
 	private Aplicacion aplicacion;
 	
-	@OneToMany(mappedBy = "notificacionEmailAplicacion")
-    private List<NotificacionEmailParaAplicacion> paraAplicacionesAplicacion;
+	@OneToMany(mappedBy = "notificacionEmailUsuario")
+    private List<NotificacionEmailParaUsuario> paraUsuariosUsuario;
 
-    @OneToMany(mappedBy = "notificacionEmailAplicacion")
-    private List<NotificacionEmailCopiaAplicacion> copiaAplicacionesAplicacion;
+	@OneToMany(mappedBy = "notificacionEmailUsuario")
+    private List<NotificacionEmailCopiaUsuario> copiaUsuariosUsuario;
 
-    @OneToMany(mappedBy = "notificacionEmailAplicacion")
-    private List<NotificacionEmailCopiaOcultaAplicacion> copiaOcultaAplicacionesAplicacion;
+    @OneToMany(mappedBy = "notificacionEmailUsuario")
+    private List<NotificacionEmailCopiaOcultaUsuario> copiaOcultaUsuariosUsuario;
 }

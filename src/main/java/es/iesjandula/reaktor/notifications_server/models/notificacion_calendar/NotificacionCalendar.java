@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class NotificacionCalendar 
+public abstract class NotificacionCalendar 
 {
 	/** Atributo - Id */
 	@Id
