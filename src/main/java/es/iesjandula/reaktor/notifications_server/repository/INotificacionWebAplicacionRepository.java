@@ -1,6 +1,5 @@
 package es.iesjandula.reaktor.notifications_server.repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,14 +10,6 @@ import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplica
 
 public interface INotificacionWebAplicacionRepository extends JpaRepository<NotificacionWebAplicacion, Long>
 {
-	/**
-	 * Método para contar las notificaciones vigentes de una aplicación
-	 * @param nombre Nombre de la aplicación
-	 * @param fechaCreacion Fecha de creación
-	 * @return int con el número de notificaciones vigentes
-	 */
-	int countByNombreAndFechaCreacion(String nombre, LocalDate fechaCreacion);
-
 	/**
 	 * Método para buscar todas las notificaciones vigentes de las aplicaciones
 	 * @return List<NotificacionesWebVigentesDto> con las notificaciones vigentes

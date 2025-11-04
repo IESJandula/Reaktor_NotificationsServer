@@ -22,7 +22,7 @@ public class NotificacionCalendarInvitadoId implements Serializable
     private Long notificacionId ;
 
     /**
-     * Identificador de la notificación.
+     * Identificador del usuario invitado.
      */
-    private String usuarioEmail ;
+    private String usuarioEmailInvitado ;
 }

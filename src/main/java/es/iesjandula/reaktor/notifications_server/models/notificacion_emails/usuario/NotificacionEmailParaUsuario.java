@@ -1,5 +1,6 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario;
 
+import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,11 +18,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NotificacionEmailParaUsuario
 {
-	/** Atributo - Identificador único */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	/** Atributo - Id */
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id ;
 
 	@ManyToOne
     private NotificacionEmailUsuario notificacionEmailUsuario;
+
+	@ManyToOne
+	private Usuario usuario;
 }
