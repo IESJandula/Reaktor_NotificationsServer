@@ -1,34 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>es.iesjandula.reaktor</groupId>
 		<artifactId>Dependencies</artifactId>
 		<version>1.0.0</version>
-		<relativePath /> <!-- lookup parent from repository -->
+		<relativePath />
+		<!-- lookup parent from repository -->
 	</parent>
-	<groupId>es.iesjandula</groupId>
+
 	<artifactId>NotificationsServer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<name>NotificationsServer</name>
-	<description>Sistemas de notificaciones para el instituto</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>21</java.version>
-	</properties>
+
 	<dependencies>
 		<!-- Utilidades comunes a todos los servidores -->
 		<dependency>
@@ -45,17 +29,6 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>com.google.firebase</groupId>
-			<artifactId>firebase-admin</artifactId>
-			<version>9.3.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 	</dependencies>
 
 	<build>
@@ -63,20 +36,32 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
-				<filtering>true</filtering> <!-- Activar filtrado de recursos -->
+				<filtering>true</filtering>				<!-- Activar filtrado de recursos -->
 				<excludes>
-					<exclude>**/*.p12</exclude> <!-- Excluir archivos .p12
+					<exclude>**/*.p12</exclude>					<!-- Excluir archivos .p12
 					(keystore) del filtrado -->
+					<exclude>**/*.pem</exclude>					<!-- Excluir archivos .pem
+					(keystore) del filtrado -->
+					<exclude>**/*.csv</exclude>					<!-- Excluir archivos .csv del
+					filtrado -->
+					<exclude>**/*.txt</exclude>					<!-- Excluir archivos .txt del
+					filtrado -->
+					<exclude>**/*.mwb</exclude>					<!-- Excluir archivos .mwb del
+					filtrado -->
 				</excludes>
 			</resource>
 			<!-- Añadir otra sección de recursos para incluir archivos binarios
 			sin filtrado -->
 			<resource>
 				<directory>src/main/resources</directory>
-				<filtering>false</filtering> <!-- No aplicar filtrado a archivos
+				<filtering>false</filtering>				<!-- No aplicar filtrado a archivos
 				binarios -->
 				<includes>
 					<include>**/*.p12</include>
+					<include>**/*.pem</include>
+					<include>**/*.csv</include>
+					<include>**/*.txt</include>
+					<include>**/*.mwb</include>
 				</includes>
 			</resource>
 			<!-- FIN - Util para la asignación de secretos desde Github -->
@@ -88,7 +73,7 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<configuration>
 					<encoding>UTF-8</encoding>
-					<useDefaultDelimiters>true</useDefaultDelimiters> <!--
+					<useDefaultDelimiters>true</useDefaultDelimiters>					<!--
 					Asegura el uso de delimitadores por defecto (${...}) -->
 					<filters>
 						<filter>
