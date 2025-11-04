@@ -6,7 +6,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +30,6 @@ import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplica
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
 import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebAplicacionRepository;
-import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
@@ -48,9 +46,6 @@ public class NotificationsWebController
 
 	@Autowired
 	private IUsuarioRepository usuarioRepository ;
-
-	@Autowired
-	private INotificacionWebRepository notificacionWebRepository ;
 	
 	@Autowired
 	private INotificacionWebUsuarioRepository notificacionWebUsuarioRepository ;

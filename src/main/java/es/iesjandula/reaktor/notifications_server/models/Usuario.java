@@ -1,16 +1,14 @@
 package es.iesjandula.reaktor.notifications_server.models;
 
 import java.sql.Date;
-import java.util.Arrays;
-import java.util.List;
 
-import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -21,6 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class Usuario extends Actor
 {
 	/** Atributo - Email */
