@@ -1,26 +1,28 @@
 package es.iesjandula.reaktor.notifications_server.dtos;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 
 import lombok.Data;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class NotificacionesWebVigentesDto 
 {
 	/** Atributo - Texto */
 	private String texto ;
 
 	/** Atributo - Fecha de inicio */
-	private LocalDate fechaInicio ;
+	private Date fechaInicio ;
 	
 	/** Atributo - Hora de inicio */
 	private LocalTime horaInicio ;
 	
 	/** Atributo - Fecha de fin */
-	private LocalDate fechaFin ;
+	private Date fechaFin ;
 	
 	/** Atributo - Hora de fin */
 	private LocalTime horaFin ;

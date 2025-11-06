@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.notifications_server.models.notificacion_web;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Date;
 
 import jakarta.persistence.Id;
 import jakarta.persistence.Column;
@@ -27,18 +28,18 @@ public abstract class NotificacionWeb
 	@Id
 	@GeneratedValue(strategy = GenerationType.TABLE)
 	private Long id ;
-
-	/** Atributo - Fecha de creación */
-	@Column
-	private LocalDate fechaCreacion ;
 	
 	/** Atributo - Texto */
 	@Column
 	private String texto ;
 
+	/** Atributo - Fecha de creación */
+	@Column
+	private Date fechaCreacion ;
+
 	/** Atributo - Fecha de inicio */
 	@Column
-	private LocalDate fechaInicio ;
+	private Date fechaInicio ;
 	
 	/** Atributo - Hora de inicio */
 	@Column
@@ -46,7 +47,7 @@ public abstract class NotificacionWeb
 	
 	/** Atributo - Fecha de fin */
 	@Column
-	private LocalDate fechaFin ;
+	private Date fechaFin ;
 	
 	/** Atributo - Hora de fin */
 	@Column

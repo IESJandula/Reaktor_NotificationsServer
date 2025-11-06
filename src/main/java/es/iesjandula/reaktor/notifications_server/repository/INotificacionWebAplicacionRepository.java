@@ -18,4 +18,13 @@ public interface INotificacionWebAplicacionRepository extends JpaRepository<Noti
 		   "FROM NotificacionWebAplicacion n " + 
 		   "WHERE n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE")
     List<NotificacionesWebVigentesDto> buscarTodasLasNotificacionesAplicacionesVigentes();	
+
+	/**
+	 * Método para buscar todas las notificaciones vigentes de las aplicaciones
+	 * @return List<NotificacionesWebVigentesDto> con las notificaciones vigentes
+	 */
+	@Query("SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebVigentesDto(n.texto, n.fechaInicio, n.horaInicio, n.fechaFin, n.horaFin, n.roles, n.nivel) " +
+		   "FROM NotificacionWebAplicacion n " + 
+		   "WHERE n.nivel = :nivel AND n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE")
+    List<NotificacionesWebVigentesDto> buscarTodasLasNotificacionesAplicacionesVigentesPorNivel(String nivel);	
 }

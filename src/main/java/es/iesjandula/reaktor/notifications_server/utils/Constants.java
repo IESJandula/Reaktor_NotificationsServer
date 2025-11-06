@@ -7,9 +7,9 @@ public class Constants
 {
 	public static final String STRING_COMA = "," ;
 	
-	public static final String NIVEL_GLOBAL = "GLOBAL" ;
+	public static final String NIVEL_GLOBAL = "Global" ;
 	
-	public static final String NIVEL_SECUNDARIO = "SECUNDARIO" ;
+	public static final String NIVEL_SECUNDARIO = "Secundario" ;
 	
 	/*********************************************************/
 	/*********************** Errores *************************/

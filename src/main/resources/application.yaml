@@ -1,5 +1,5 @@
 spring:
-  jpa.hibernate.ddl-auto: update
+  jpa.hibernate.ddl-auto: create
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_notificationsserver?createDatabaseIfNotExist=true
     username: root
@@ -8,7 +8,7 @@ spring:
       connection-timeout: 60000
       maximum-pool-size: 5
 server:
-  port: 8091
+  port: 8088
 reaktor:
   publicKeyFile: C:\claves\public_key.pem
   privateKeyFile: C:\claves\private_key.pem
