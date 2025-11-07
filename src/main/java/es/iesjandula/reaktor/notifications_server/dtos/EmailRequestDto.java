@@ -11,12 +11,22 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EmailRequestDto 
 {
-
+    /* Atributo - From */
 	private String from;
+
+    /* Atributo - To */
     private List<String> to;
+
+    /* Atributo - CC */
     private List<String> cc;
+
+    /* Atributo - BCC */
     private List<String> bcc;
+
+    /* Atributo - Subject */
     private String subject;
+
+    /* Atributo - Body */
     private String body;
 	
 }

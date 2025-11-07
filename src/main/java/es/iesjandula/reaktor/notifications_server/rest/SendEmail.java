@@ -12,13 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/email")
+@RequestMapping("/send_email")
 public class SendEmail {
 
     @Autowired
     private EmailService emailService;
 
-    @RequestMapping(method = RequestMethod.POST, value = "/send")
+    @RequestMapping(method = RequestMethod.POST, value = "/")
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     public ResponseEntity<String> sendEmail(@RequestBody EmailRequestDto emailRequestDto) {
         try {
