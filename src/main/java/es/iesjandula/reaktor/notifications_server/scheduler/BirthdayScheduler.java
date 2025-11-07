@@ -1,45 +1,48 @@
 package es.iesjandula.reaktor.notifications_server.scheduler;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import es.iesjandula.reaktor.notifications_server.models.Birthday;
-import es.iesjandula.reaktor.notifications_server.repository.IBirthdayRepository;
+import es.iesjandula.reaktor.notifications_server.models.Usuario;
+import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
 public class BirthdayScheduler 
 {
-	
-	@Autowired
-	private IBirthdayRepository birthdayRepository ;
+    @Autowired
+    private IUsuarioRepository usuarioRepository;
 
-	@Scheduled(cron = "0 0 0 * * *", zone = "Europe/Madrid")
-	public void greetings()
-	{
-		
-		LocalDate fechaActual = LocalDate.now();
-		List<Birthday> birthdays = this.birthdayRepository.findAll() ;
-		
-		for (Birthday b : birthdays) 
-		{
-			if (b.getFechaNacimiento().getMonth() == fechaActual.getMonth() && b.getFechaNacimiento().getDayOfMonth() == fechaActual.getDayOfMonth())
-			{
-				b.setGreetings(true) ;
-			} else 
-			{
-				b.setGreetings(false) ;
-			}
-		}
-		
-		this.birthdayRepository.saveAll(birthdays) ;
-		log.info("Greetings actualizados correctamente");
-		
-	}
-	
+    @Scheduled(cron = "0 0 0 * * *", zone = "Europe/Madrid")
+    public void greetings()
+    {
+        Date fechaActual = new Date();
+
+        List<Usuario> usuarios = this.usuarioRepository.findAll();
+
+        for (Usuario u : usuarios) 
+        {
+            Date fechaNac = u.getFechaNacimiento();
+            if (fechaNac != null)
+            {
+                if (fechaNac.getMonth() == fechaActual.getMonth() &&
+                    fechaNac.getDate() == fechaActual.getDate())
+                {
+                    u.setGreetings(true);
+                } 
+                else 
+                {
+                    u.setGreetings(false);
+                }
+            }
+        }
+
+        this.usuarioRepository.saveAll(usuarios);
+        log.info("Greetings actualizados correctamente");
+    }
 }
