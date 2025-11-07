@@ -1,5 +1,8 @@
 package es.iesjandula.reaktor.notifications_server.utils;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author Francisco Manuel Benítez Chico
  */
@@ -7,9 +10,14 @@ public class Constants
 {
 	public static final String STRING_COMA = "," ;
 	
-	public static final String NIVEL_GLOBAL = "Global" ;
+	/** Tipo de notificación - Solo texto */
+	public static final String TIPO_NOTIFICACION_SOLO_TEXTO     = "Solo texto" ;
 	
-	public static final String NIVEL_SECUNDARIO = "Secundario" ;
+	/** Tipo de notificación - Texto e imagen */
+	public static final String TIPO_NOTIFICACION_TEXTO_E_IMAGEN = "Texto e imagen" ;
+
+	/** Lista de tipos de notificación */
+	public static final List<String> TIPOS_NOTIFICACIONES = Arrays.asList(TIPO_NOTIFICACION_SOLO_TEXTO) ; //, TIPO_NOTIFICACION_TEXTO_E_IMAGEN) ;
 	
 	/*********************************************************/
 	/*********************** Errores *************************/

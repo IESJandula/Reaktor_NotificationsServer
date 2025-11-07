@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import es.iesjandula.reaktor.base.security.models.DtoAplicacion;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebVigentesDto;
+import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto;
 import es.iesjandula.reaktor.notifications_server.models.Actor;
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
@@ -97,10 +96,10 @@ public class NotificationsWebController
 	}
 
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-	@RequestMapping(method = RequestMethod.GET, value = "/levels")
-	public ResponseEntity<?> obtenerNivelesNotificaciones()
+	@RequestMapping(method = RequestMethod.GET, value = "/types")
+	public ResponseEntity<?> obtenerTiposNotificaciones()
 	{
-		return ResponseEntity.ok(Arrays.asList(Constants.NIVEL_GLOBAL, Constants.NIVEL_SECUNDARIO)) ;
+		return ResponseEntity.ok(Constants.TIPOS_NOTIFICACIONES) ;
 	}
 
 	/**
@@ -111,8 +110,8 @@ public class NotificationsWebController
 	 * @param horaInicio Hora de inicio de la notificación web
 	 * @param fechaFin Fecha de fin de la notificación web
 	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
+	 * @param rol Rol de la notificación web
+	 * @param tipo Tipo de notificación web
 	 * @return ResponseEntity con el resultado de la creación de la notificación web
 	 */
 	@RequestMapping(method = RequestMethod.POST, value = "/users")
@@ -123,8 +122,8 @@ public class NotificationsWebController
 	                                                  @RequestHeader("horaInicio") String horaInicio,
 	                                                  @RequestHeader("fechaFin") String fechaFin,
 	                                                  @RequestHeader("horaFin") String horaFin,
-	                                                  @RequestHeader("roles") String roles,
-	                                                  @RequestHeader("nivel") String nivel)
+	                                                  @RequestHeader("rol") String rol,
+	                                                  @RequestHeader("tipo") String tipo)
 	{
 		try 
 	    {
@@ -140,10 +139,10 @@ public class NotificationsWebController
 			}
 
 			// Realizamos validaciones previas
-			this.validacionesPreviasNotificacionWebUsuario(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel) ;
+			this.validacionesPrevias(texto, fechaInicio, horaInicio, fechaFin, horaFin, rol, tipo) ;
 
 			// Creamos la notificación web de usuario
-			this.crearNotificacionWebUsuario(usuarioDatabase, texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
+			this.crearNotificacionWebUsuario(usuarioDatabase, texto, fechaInicio, horaInicio, fechaFin, horaFin, rol, tipo);
 
 			// Devolvemos la respuesta
 	        return ResponseEntity.status(200).build() ;
@@ -205,37 +204,6 @@ public class NotificationsWebController
 	}
 
 	/**
-	 * Método auxiliar para realizar validaciones previas a la creación de una notificación web
-	 * @param texto Texto de la notificación web
-	 * @param fechaInicio Fecha de inicio de la notificación web
-	 * @param horaInicio Hora de inicio de la notificación web
-	 * @param fechaFin Fecha de fin de la notificación web
-	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private void validacionesPreviasNotificacionWebUsuario(String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String roles, String nivel) throws NotificationsServerException
-	{
-		// Validamos los campos comunes
-		this.validacionesPreviasNotificacionWebComunes(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
-
-		boolean roleEncontrado = roles.contains(BaseConstants.ROLE_ADMINISTRADOR) ||
-								 roles.contains(BaseConstants.ROLE_DIRECCION)     ||
-								 roles.contains(BaseConstants.ROLE_PROFESOR) ;
-
-		if (!roleEncontrado)
-		{
-			String errorMessage = "Roles inválidos. Solo se permiten: " + BaseConstants.ROLE_ADMINISTRADOR + " o "  +
-																		  BaseConstants.ROLE_DIRECCION     + " o "  +
-																		  BaseConstants.ROLE_PROFESOR ;
-
-			log.error(errorMessage);
-			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
-		}
-	}
-
-	/**
 	 * Método auxiliar para crear una notificación web
 	 * @param usuario Usuario
 	 * @param texto Texto de la notificación web
@@ -243,21 +211,21 @@ public class NotificationsWebController
 	 * @param horaInicio Hora de inicio de la notificación web
 	 * @param fechaFin Fecha de fin de la notificación web
 	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
+	 * @param rol Rol de la notificación web
+	 * @param tipo Tipo de notificación web
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
 	private void crearNotificacionWebUsuario(Usuario usuario,
 	                                         String texto,
 											 String fechaInicio, String horaInicio,
 											 String fechaFin,    String horaFin,
-											 String roles,       String nivel) throws NotificationsServerException
+											 String rol,         String tipo) throws NotificationsServerException
 	{
 		// Creamos una instancia de notificación web de usuario
 		NotificacionWebUsuario notificacionWebUsuario = new NotificacionWebUsuario();
 
 		// Creamos una instancia de notificación web
-		this.crearNotificacionWebCamposComunes(notificacionWebUsuario, texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
+		this.crearNotificacionWebCamposComunes(notificacionWebUsuario, texto, fechaInicio, horaInicio, fechaFin, horaFin, rol, tipo);
 
 		// Seteamos el usuario
 		notificacionWebUsuario.setUsuario(usuario);
@@ -404,8 +372,8 @@ public class NotificationsWebController
 	 * @param horaInicio Hora de inicio de la notificación web
 	 * @param fechaFin Fecha de fin de la notificación web
 	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
+	 * @param rol Rol de la notificación web
+	 * @param tipo Tipo de notificación web
 	 * @return ResponseEntity con el resultado de la creación de la notificación web
 	 */
 	@RequestMapping(method = RequestMethod.POST, value = "/apps")
@@ -417,8 +385,8 @@ public class NotificationsWebController
 			                                         @RequestHeader("hora_inicio") String horaInicio,
 			                                         @RequestHeader("fecha_fin") String fechaFin,
 			                                         @RequestHeader("hora_fin") String horaFin,
-			                                         @RequestHeader("roles") String roles,
-			                                         @RequestHeader("nivel") String nivel)
+			                                         @RequestHeader("rol") String rol,
+			                                         @RequestHeader("tipo") String tipo)
 	{
 	    try 
 	    {
@@ -433,11 +401,11 @@ public class NotificationsWebController
 				throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
 			}
 
-			// Validamos los campos de la aplicación
-			this.validacionesPreviasNotificacionWebApp(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
+			// Realizamos validaciones previas
+			this.validacionesPrevias(texto, fechaInicio, horaInicio, fechaFin, horaFin, rol, tipo);
 
 			// Creamos la notificación web de aplicación
-			this.crearNotificacionWebApp(aplicacionDatabase, texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
+			this.crearNotificacionWebApp(aplicacionDatabase, texto, fechaInicio, horaInicio, fechaFin, horaFin, rol, tipo);
 
 			// Devolvemos la respuesta
 	        return ResponseEntity.status(200).build() ;
@@ -519,64 +487,54 @@ public class NotificationsWebController
 	 * @param horaInicio Hora de inicio de la notificación web
 	 * @param fechaFin Fecha de fin de la notificación web
 	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
+	 * @param rol Rol de la notificación web
+	 * @param tipo Tipo de notificación web
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	private void validacionesPreviasNotificacionWebApp(String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String roles, String nivel) throws NotificationsServerException
-	{
-		// Validamos los campos comunes
-		this.validacionesPreviasNotificacionWebComunes(texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
-
-		if (!roles.contains(BaseConstants.ROLE_APLICACION_NOTIFICACIONES))
-		{
-			String errorMessage = "Roles inválidos. Solo se permiten: " + BaseConstants.ROLE_APLICACION_NOTIFICACIONES ;
-
-			log.error(errorMessage);
-			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
-		}
-	}
-
-	/**
-	 * Método auxiliar para realizar validaciones previas a la creación de una notificación web
-	 * @param texto Texto de la notificación web
-	 * @param fechaInicio Fecha de inicio de la notificación web
-	 * @param horaInicio Hora de inicio de la notificación web
-	 * @param fechaFin Fecha de fin de la notificación web
-	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private void validacionesPreviasNotificacionWebComunes(String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String roles, String nivel) throws NotificationsServerException
+	private void validacionesPrevias(String texto, String fechaInicio, String horaInicio, String fechaFin, String horaFin, String rol, String tipo) throws NotificationsServerException
 	{
 		// Validamos si los campos son nulos o vacíos
 		if (texto == null       || texto.isEmpty()       || 
 		    fechaInicio == null || fechaInicio.isEmpty() || horaInicio == null || horaInicio.isEmpty() || 
 			fechaFin == null    || fechaFin.isEmpty()    || horaFin == null    || horaFin.isEmpty()    || 
-			roles == null       || roles.isEmpty()       || 
-			nivel == null       || nivel.isEmpty())
+			rol == null       	|| rol.isEmpty()         || 
+			tipo == null 		|| tipo.isEmpty())
 		{
 			String errorMessage = "Campos inválidos. Nulos o vacíos" ;
 			log.error(errorMessage);
 			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
 		}
 
-		// Validamos el nivel, solo se permiten los niveles globales y secundarios
-		if (!nivel.equalsIgnoreCase(Constants.NIVEL_GLOBAL) && !nivel.equalsIgnoreCase(Constants.NIVEL_SECUNDARIO)) 
+		// Validamos el tipo de notificación, solo se permiten los tipos de notificaciones globales y secundarios
+		if (!tipo.equalsIgnoreCase(Constants.TIPO_NOTIFICACION_SOLO_TEXTO) && !tipo.equalsIgnoreCase(Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN)) 
 		{
-			String errorMessage = "Nivel inválido. Solo se permiten: "  + Constants.NIVEL_GLOBAL + " o "  + Constants.NIVEL_SECUNDARIO;
+			String errorMessage = "Tipo de notificación inválido. Solo se permiten: "  + Constants.TIPO_NOTIFICACION_SOLO_TEXTO + " o "  + Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN;
 			
 			log.error(errorMessage);
 			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
 		}
 
 		// Validamos si se permite adjuntar imagen en notificaciones de nivel SECUNDARIO, no se permite
-		if (nivel.equalsIgnoreCase(Constants.NIVEL_SECUNDARIO) && texto != null && texto.contains("[Imagen:")) 
+		if (tipo.equalsIgnoreCase(Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN) && texto != null && texto.contains("[Imagen:")) 
 		{
-			String errorMessage = "No se permite adjuntar imagen en notificaciones de nivel SECUNDARIO" ;
+			String errorMessage = "No se permite adjuntar imagen en notificaciones de tipo de notificación " + Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN ;
 			log.error(errorMessage) ;
 			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage) ;
+		}
+		
+		// Validamos el rol, solo se permiten los roles de administrador, dirección y profesor
+		boolean roleEncontrado = rol.equals(BaseConstants.ROLE_ADMINISTRADOR) ||
+								 rol.equals(BaseConstants.ROLE_DIRECCION)     ||
+								 rol.equals(BaseConstants.ROLE_PROFESOR) ;
+
+		if (!roleEncontrado)
+		{
+			String errorMessage = "Rol inválido. Solo se permiten: " + BaseConstants.ROLE_ADMINISTRADOR + " o "  +
+																	   BaseConstants.ROLE_DIRECCION     + " o "  +
+																	   BaseConstants.ROLE_PROFESOR ;
+
+			log.error(errorMessage);
+			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
 		}
 	}
 
@@ -588,21 +546,21 @@ public class NotificationsWebController
 	 * @param horaInicio Hora de inicio de la notificación web
 	 * @param fechaFin Fecha de fin de la notificación web
 	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
+	 * @param rol Rol de la notificación web
+	 * @param tipo Tipo de notificación web
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
 	private void crearNotificacionWebApp(Aplicacion aplicacion, 
 	                                     String texto,
 										 String fechaInicio, String horaInicio,
 										 String fechaFin,    String horaFin,
-										 String roles,       String nivel) throws NotificationsServerException
+										 String rol,         String tipo) throws NotificationsServerException
 	{
 		// Creamos una instancia de notificación web de aplicación
 		NotificacionWebAplicacion notificacionWebAplicacion = new NotificacionWebAplicacion();
 
 		// Creamos los campos comunes de la notificación web
-		this.crearNotificacionWebCamposComunes(notificacionWebAplicacion, texto, fechaInicio, horaInicio, fechaFin, horaFin, roles, nivel);
+		this.crearNotificacionWebCamposComunes(notificacionWebAplicacion, texto, fechaInicio, horaInicio, fechaFin, horaFin, rol, tipo);
 
 		// Seteamos la aplicación
 		notificacionWebAplicacion.setAplicacion(aplicacion);
@@ -619,15 +577,15 @@ public class NotificationsWebController
 	 * @param horaInicio Hora de inicio de la notificación web
 	 * @param fechaFin Fecha de fin de la notificación web
 	 * @param horaFin Hora de fin de la notificación web
-	 * @param roles Roles de la notificación web
-	 * @param nivel Nivel de la notificación web
+	 * @param rol Rol de la notificación web
+	 * @param tipo Tipo de notificación web
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
 	private void crearNotificacionWebCamposComunes(NotificacionWeb notificacionWeb, 
 	                                               String texto,
 												   String fechaInicio, String horaInicio,
 												   String fechaFin,    String horaFin,
-												   String roles,       String nivel) throws NotificationsServerException
+												   String rol,         String tipo) throws NotificationsServerException
 	{
 		// Seteamos la fecha de creación
 		notificacionWeb.setFechaCreacion(new Date());
@@ -636,7 +594,7 @@ public class NotificationsWebController
 		notificacionWeb.setTexto(texto);
 
 		// Seteamos el nivel
-		notificacionWeb.setNivel(nivel.toUpperCase());
+		notificacionWeb.setTipo(tipo.toUpperCase());
 
 		// Convertimos las fechas a Date
 		Date fechaInicioDate = this.convertirFecha(fechaInicio);
@@ -654,8 +612,8 @@ public class NotificationsWebController
 		notificacionWeb.setFechaFin(fechaFinDate);
 		notificacionWeb.setHoraFin(horaFinLocalTime);
 		
-		// Seteamos los roles
-		notificacionWeb.setRoles(roles);
+		// Seteamos el rol
+		notificacionWeb.setRol(rol);
 
 		// Seteamos el activo a true
 		notificacionWeb.setActivo(true) ;
@@ -671,7 +629,7 @@ public class NotificationsWebController
 	{
 		try
 		{
-			return new SimpleDateFormat("yyyy-MM-dd").parse(fecha);
+			return new SimpleDateFormat("dd/MM/yyyy").parse(fecha);
 		}
 		catch (ParseException parseException)
 		{
@@ -702,26 +660,26 @@ public class NotificationsWebController
 	}
 
 	/**
-	 * Método para obtener las notificaciones vigentes por nivel
+	 * Método para obtener las notificaciones vigentes por tipo de notificación
 	 * @param usuario Usuario extendido
-	 * @param nivel Nivel de las notificaciones
+	 * @param tipo Tipo de notificación de las notificaciones
 	 * @return ResponseEntity con el resultado de las notificaciones vigentes
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	@RequestMapping(method = RequestMethod.GET, value = "/level")
+	@RequestMapping(method = RequestMethod.GET, value = "/search_by_type")
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-	public ResponseEntity<?> obtenerNotificacionesVigentesPorNivel(@AuthenticationPrincipal DtoUsuarioExtended usuario,
-																   @RequestHeader("nivel") String nivel)
+	public ResponseEntity<?> obtenerNotificacionesVigentesPorTipo(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+																  @RequestHeader("tipo") String tipo)
 	{
-	    List<NotificacionesWebVigentesDto> resultado = new ArrayList<NotificacionesWebVigentesDto>();
+	    List<NotificacionesWebResponseDto> resultado = new ArrayList<NotificacionesWebResponseDto>();
 
 		try 
 		{
 			// Obtenemos todas las notificaciones vigentes de los usuarios
-			resultado.addAll(this.notificacionWebUsuarioRepository.buscarTodasLasNotificacionesUsuariosVigentesPorNivel(nivel)) ;
+			resultado.addAll(this.notificacionWebUsuarioRepository.buscarTodasLasNotificacionesUsuariosVigentesPorTipo(tipo, usuario.getRoles())) ;
 
 			// Obtenemos todas las notificaciones vigentes de la aplicación
-			resultado.addAll(this.notificacionWebAplicacionRepository.buscarTodasLasNotificacionesAplicacionesVigentesPorNivel(nivel)) ;
+			resultado.addAll(this.notificacionWebAplicacionRepository.buscarTodasLasNotificacionesAplicacionesVigentesPorTipo(tipo, usuario.getRoles())) ;
 
 			return ResponseEntity.ok(resultado) ;			
 		}
@@ -741,29 +699,29 @@ public class NotificationsWebController
 	 * @param usuario Usuario extendido
 	 * @return ResponseEntity con el resultado de las notificaciones vigentes
 	 */
-	@RequestMapping(method = RequestMethod.GET, value = "/users")
+	@RequestMapping(method = RequestMethod.GET, value = "/search_by_user")
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-	public ResponseEntity<?> obtenerNotificacionesVigentesPorUsuario(@AuthenticationPrincipal DtoUsuarioExtended usuario)
+	public ResponseEntity<?> obtenerNotificacionesPorUsuario(@AuthenticationPrincipal DtoUsuarioExtended usuario)
 	{
-	    List<NotificacionesWebVigentesDto> resultado = new ArrayList<NotificacionesWebVigentesDto>();
+	    List<NotificacionesWebResponseDto> resultado = new ArrayList<NotificacionesWebResponseDto>();
 
 		try 
 		{
 			// Si el usuario es un administrador, obtenemos todas las notificaciones vigentes de aplicaciones
 			if (usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR))
 			{
-				resultado.addAll(this.notificacionWebAplicacionRepository.buscarTodasLasNotificacionesAplicacionesVigentes()) ;
+				resultado.addAll(this.notificacionWebAplicacionRepository.buscarTodasLasNotificacionesAplicaciones()) ;
 			}
 
 			// Si además es dirección, obtenemos todas las notificaciones vigentes de los usuarios
 			if (usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
 			{
-				resultado.addAll(this.notificacionWebUsuarioRepository.buscarTodasLasNotificacionesUsuariosVigentes()) ;
+				resultado.addAll(this.notificacionWebUsuarioRepository.buscarTodasLasNotificacionesUsuarios()) ;
 			}
 			// Si el usuario es profesor, obtenemos las notificaciones vigentes de este usuario
 			else if (usuario.getRoles().contains(BaseConstants.ROLE_PROFESOR))
 			{
-				resultado.addAll(this.notificacionWebUsuarioRepository.buscarNotificacionesVigentesUsuariosPorUsuario(usuario.getEmail())) ;
+				resultado.addAll(this.notificacionWebUsuarioRepository.buscarNotificacionesUsuariosPorUsuario(usuario.getEmail())) ;
 			}
 
 			return ResponseEntity.ok(resultado) ;			

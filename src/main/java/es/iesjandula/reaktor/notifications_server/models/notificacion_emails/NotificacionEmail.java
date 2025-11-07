@@ -1,6 +1,5 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_emails;
 
-import java.time.LocalDate;
 import java.util.Date;
 
 import jakarta.persistence.Column;

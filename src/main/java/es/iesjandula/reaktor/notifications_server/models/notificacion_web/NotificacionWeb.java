@@ -1,6 +1,5 @@
 package es.iesjandula.reaktor.notifications_server.models.notificacion_web;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Date;
 
@@ -53,13 +52,13 @@ public abstract class NotificacionWeb
 	@Column
 	private LocalTime horaFin ;
 	
-	/** Atributo - Roles */
+	/** Atributo - Rol */
 	@Column
-	private String roles ;
+	private String rol ;
 	
-	/** Atributo - Nivel */
+	/** Atributo - Tipo */
 	@Column
-	private String nivel ;
+	private String tipo ;
 
 	/** Atributo - Activo */
 	@Column
