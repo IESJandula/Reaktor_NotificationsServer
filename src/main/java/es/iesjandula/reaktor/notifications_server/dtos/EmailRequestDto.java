@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EmailRequestDto 
 {
-    /* Atributo - From */
-	private String from;
-
     /* Atributo - To */
     private List<String> to;
 

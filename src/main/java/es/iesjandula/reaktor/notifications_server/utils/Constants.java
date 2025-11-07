@@ -39,4 +39,12 @@ public class Constants
 
 	/** Propiedades YAML - Notificaciones - Web */
 	public static final String REAKTOR_NOTIFICATIONS_MAX_WEB       = "reaktor.notifications.max.web" ;
+
+
+	/*********************************************************/
+	/**************** Propiedades Gmail **********************/
+	/*********************************************************/
+
+	/** Propiedades Gmail - Application Name */
+	public static final String GMAIL_APPLICATION_NAME = "Reaktor-FirebaseServer" ;
 }

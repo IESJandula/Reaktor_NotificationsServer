@@ -23,6 +23,9 @@ reaktor:
   privateKeyFile: ${PRIVATE_KEY_FILE}
   googleCredentialsFile: ${GOOGLE_CREDENTIALS_FILE}
   urlCors: https://somos.iesjandula.es
+  gmail:
+    from: "reaktor-notifications-server@gmail.com"
+    oauthCredentialsFile: ${GMAIL_OAUTH_CREDENTIALS_FILE}
   notifications:
     max:
       calendar: 10
