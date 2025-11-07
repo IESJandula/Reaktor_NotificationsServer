@@ -31,7 +31,6 @@ import es.iesjandula.reaktor.notifications_server.repository.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/email")
 public class SendEmail
 {
     @Autowired 
@@ -52,7 +51,7 @@ public class SendEmail
     @Autowired 
     private IUsuarioRepository usuarioRepository;
 
-    @RequestMapping(method = RequestMethod.POST, value = "/send")
+    @RequestMapping(method = RequestMethod.POST, value = "/")
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     public ResponseEntity<?> sendEmail(@RequestBody EmailRequestDto emailRequestDto)
     {
