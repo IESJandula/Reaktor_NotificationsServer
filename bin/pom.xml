@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>es.iesjandula.reaktor</groupId>
+		<artifactId>Dependencies</artifactId>
+		<version>1.0.0</version>
+		<relativePath />
+		<!-- lookup parent from repository -->
+	</parent>
+
+	<artifactId>NotificationsServer</artifactId>
+	<name>NotificationsServer</name>
+
+	<dependencies>
+		<!-- Utilidades comunes a todos los servidores -->
+		<dependency>
+			<groupId>es.iesjandula.reaktor</groupId>
+			<artifactId>BaseServer</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.oauth-client</groupId>
+		    <artifactId>google-oauth-client-jetty</artifactId>
+		    <version>1.34.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.sun.mail</groupId>
+		    <artifactId>javax.mail</artifactId>
+		    <version>1.6.2</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.apis</groupId>
+		    <artifactId>google-api-services-gmail</artifactId>
+		    <version>v1-rev110-1.25.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.oauth-client</groupId>
+		    <artifactId>google-oauth-client</artifactId>
+		    <version>1.34.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.http-client</groupId>
+		    <artifactId>google-http-client-gson</artifactId>
+		    <version>1.43.3</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<!-- Util para la asignación de secretos desde Github -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>				<!-- Activar filtrado de recursos -->
+				<excludes>
+					<exclude>**/*.p12</exclude>					<!-- Excluir archivos .p12
+					(keystore) del filtrado -->
+					<exclude>**/*.pem</exclude>					<!-- Excluir archivos .pem
+					(keystore) del filtrado -->
+					<exclude>**/*.csv</exclude>					<!-- Excluir archivos .csv del
+					filtrado -->
+					<exclude>**/*.txt</exclude>					<!-- Excluir archivos .txt del
+					filtrado -->
+					<exclude>**/*.mwb</exclude>					<!-- Excluir archivos .mwb del
+					filtrado -->
+				</excludes>
+			</resource>
+			<!-- Añadir otra sección de recursos para incluir archivos binarios
+			sin filtrado -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>				<!-- No aplicar filtrado a archivos
+				binarios -->
+				<includes>
+					<include>**/*.p12</include>
+					<include>**/*.pem</include>
+					<include>**/*.csv</include>
+					<include>**/*.txt</include>
+					<include>**/*.mwb</include>
+				</includes>
+			</resource>
+			<!-- FIN - Util para la asignación de secretos desde Github -->
+		</resources>
+		<plugins>
+			<!-- Util para la asignación de secretos desde Github -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<useDefaultDelimiters>true</useDefaultDelimiters>					<!--
+					Asegura el uso de delimitadores por defecto (${...}) -->
+					<filters>
+						<filter>
+							src/main/resources/application-VPS-filter.properties</filter>
+					</filters>
+				</configuration>
+			</plugin>
+			<!-- FIN - Util para la asignación de secretos desde Github -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<classifier>jar-with-dependencies</classifier>
+							<mainClass>
+								es.iesjandula.reaktor.notifications_server.ReaktorNotificationsServerApplication</mainClass>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
