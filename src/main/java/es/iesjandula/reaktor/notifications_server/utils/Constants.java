@@ -9,6 +9,10 @@ import java.util.List;
 public class Constants
 {
 	public static final String STRING_COMA = "," ;
+
+	/*********************************************************/
+	/*************** Tipos de notificaciones *****************/
+	/*********************************************************/
 	
 	/** Tipo de notificación - Solo texto */
 	public static final String TIPO_NOTIFICACION_SOLO_TEXTO     = "Solo texto" ;
@@ -18,6 +22,21 @@ public class Constants
 
 	/** Lista de tipos de notificación */
 	public static final List<String> TIPOS_NOTIFICACIONES = Arrays.asList(TIPO_NOTIFICACION_SOLO_TEXTO) ; //, TIPO_NOTIFICACION_TEXTO_E_IMAGEN) ;
+
+
+	/*********************************************************/
+	/*************** Receptores de notificaciones ************/
+	/*********************************************************/
+	
+	/** Receptor de notificación - Profesor */
+	public static final String RECEPTOR_NOTIFICACION_CLAUSTRO = "Todo el claustro" ;
+
+	/** Receptor de notificación - Equipo directivo */
+	public static final String RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO = "Solo el equipo directivo" ;
+
+	/** Receptor de notificación - Administradores */
+	public static final String RECEPTOR_NOTIFICACION_ADMINISTRADORES = "Solo administradores" ;
+
 	
 	/*********************************************************/
 	/*********************** Errores *************************/

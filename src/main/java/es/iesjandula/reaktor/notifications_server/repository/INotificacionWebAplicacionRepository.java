@@ -16,11 +16,11 @@ public interface INotificacionWebAplicacionRepository extends JpaRepository<Noti
 	 */
 	@Query(
 	"""
-		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(n.aplicacion.nombre,
+		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(n.id, n.aplicacion.nombre,
 																								n.texto,
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaInicio, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaInicio, '%H:%i')),
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaFin, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaFin, '%H:%i')),
-																								n.rol, n.tipo)
+																								n.receptor, n.tipo)
 		FROM NotificacionWebAplicacion n
 	"""
 	)
@@ -32,15 +32,15 @@ public interface INotificacionWebAplicacionRepository extends JpaRepository<Noti
 	 */
 	@Query(
 	"""
-		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(n.aplicacion.nombre,
+		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(n.id, n.aplicacion.nombre,
 																								n.texto,
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaInicio, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaInicio, '%H:%i')),
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaFin, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaFin, '%H:%i')), 
-																								n.rol,
+																								n.receptor,
 																								n.tipo)
 		FROM NotificacionWebAplicacion n
-		WHERE n.tipo = :tipo AND n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.rol IN :roles
+		WHERE n.tipo = :tipo AND n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.receptor IN :receptores
 	"""
 	)
-    List<NotificacionesWebResponseDto> buscarTodasLasNotificacionesAplicacionesVigentesPorTipo(String tipo, List<String> roles);
+    List<NotificacionesWebResponseDto> buscarTodasLasNotificacionesAplicacionesVigentesPorTipo(String tipo, List<String> receptores);
 }

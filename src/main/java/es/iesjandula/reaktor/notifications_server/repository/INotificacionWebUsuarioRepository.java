@@ -16,11 +16,11 @@ public interface INotificacionWebUsuarioRepository extends JpaRepository<Notific
 	 */
 	@Query(
 	"""
-		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(CONCAT(n.usuario.nombre, ' ', n.usuario.apellidos),
+		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(n.id, CONCAT(n.usuario.nombre, ' ', n.usuario.apellidos),
 																								n.texto,
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaInicio, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaInicio, '%H:%i')),
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaFin, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaFin, '%H:%i')),
-																								n.rol, n.tipo)
+																								n.receptor, n.tipo)
 		FROM NotificacionWebUsuario n
 	"""
 	)
@@ -33,13 +33,13 @@ public interface INotificacionWebUsuarioRepository extends JpaRepository<Notific
 	 */
 	@Query(
 	"""
-		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(CONCAT(n.usuario.nombre, ' ', n.usuario.apellidos),
+		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(n.id, CONCAT(n.usuario.nombre, ' ', n.usuario.apellidos),
 																								n.texto,
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaInicio, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaInicio, '%H:%i')),
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaFin, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaFin, '%H:%i')),
-																								n.rol, n.tipo)
+																								n.receptor, n.tipo)
 		FROM NotificacionWebUsuario n
-		WHERE n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.usuario.email = :email
+		WHERE n.usuario.email = :email
 	"""
 	)
 	List<NotificacionesWebResponseDto> buscarNotificacionesUsuariosPorUsuario(String email);
@@ -47,19 +47,19 @@ public interface INotificacionWebUsuarioRepository extends JpaRepository<Notific
 	/**
 	 * Método para buscar todas las notificaciones vigentes de los usuarios
 	 * @param tipo Tipo de notificación
-	 * @param roles Roles del usuario
+	 * @param receptores Receptores del usuario
 	 * @return List<NotificacionesWebResponseDto> con las notificaciones vigentes
 	 */
 	@Query(
 	"""
-		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(CONCAT(n.usuario.nombre, ' ', n.usuario.apellidos),
+		SELECT new es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto(n.id, CONCAT(n.usuario.nombre, ' ', n.usuario.apellidos),
 																								n.texto,
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaInicio, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaInicio, '%H:%i')),
 																								CONCAT(FUNCTION('DATE_FORMAT', n.fechaFin, '%d/%m/%Y'), ' ', FUNCTION('TIME_FORMAT', n.horaFin, '%H:%i')),
-																								n.rol, n.tipo)
+																								n.receptor, n.tipo)
 		FROM NotificacionWebUsuario n
-		WHERE n.tipo = :tipo AND n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.rol IN :roles
+		WHERE n.tipo = :tipo AND n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.receptor IN :receptores
 	"""
 	)
-    List<NotificacionesWebResponseDto> buscarTodasLasNotificacionesUsuariosVigentesPorTipo(String tipo, List<String> roles);
+    List<NotificacionesWebResponseDto> buscarTodasLasNotificacionesUsuariosVigentesPorTipo(String tipo, List<String> receptores);
 }

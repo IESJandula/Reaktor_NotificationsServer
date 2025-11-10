@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NotificacionesWebResponseDto 
 {
+	/** Atributo - Identificador de la notificación */
+	private Long id ;
+
 	/** Atributo - Creador de la notificación */
 	private String creador ;
 
@@ -21,8 +24,8 @@ public class NotificacionesWebResponseDto
 	/** Atributo - Fecha y hora de fin */
 	private String fechaHoraFin ;
 	
-	/** Atributo - Rol */
-	private String rol ;
+	/** Atributo - Receptor */
+	private String receptor ;
 	
 	/** Atributo - Tipo */
 	private String tipo ;

@@ -52,15 +52,11 @@ public abstract class NotificacionWeb
 	@Column
 	private LocalTime horaFin ;
 	
-	/** Atributo - Rol */
+	/** Atributo - Receptor */
 	@Column
-	private String rol ;
+	private String receptor ;
 	
 	/** Atributo - Tipo */
 	@Column
 	private String tipo ;
-
-	/** Atributo - Activo */
-	@Column
-	private boolean activo ;
 }

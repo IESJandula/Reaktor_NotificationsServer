@@ -26,9 +26,4 @@ public interface IUsuarioRepository extends JpaRepository<Usuario, String>
 	@Query("SELECT new es.iesjandula.reaktor.base.security.models.DtoUsuarioBase(u.email, u.nombre, u.apellidos, u.departamento) "   +
 			   "FROM Usuario u where u.email = :email")
 	DtoUsuarioBase obtenerInfoUsuario(@Param("email") String email);
-
-	@Transactional
-	@Modifying
-	@Query("DELETE FROM Usuario u where u.roles NOT LIKE '%ADMINISTRADOR%'")
-    void borrarProfesoresConRolNoAdministrador();
 }
