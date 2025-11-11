@@ -1,5 +1,5 @@
 spring:
-  jpa.hibernate.ddl-auto: update
+  jpa.hibernate.ddl-auto: create
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_notificationsserver?createDatabaseIfNotExist=true
     username: root
@@ -20,8 +20,6 @@ logging:
 
 reaktor:
   publicKeyFile: ${PUBLIC_KEY_FILE}
-  privateKeyFile: ${PRIVATE_KEY_FILE}
-  googleCredentialsFile: ${GOOGLE_CREDENTIALS_FILE}
   urlCors: https://somos.iesjandula.es
   notifications:
     max:
