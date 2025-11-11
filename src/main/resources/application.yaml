@@ -11,7 +11,6 @@ server:
   port: 8088
 reaktor:
   publicKeyFile: C:\claves\public_key.pem
-  privateKeyFile: C:\claves\private_key.pem
   googleCredentialsFile: C:\claves\firebaseGoogleCredentials.json
   urlCors: http://localhost:5173, http://192.168.1.209:5173, http://192.168.1.181:5173, http://192.168.1.137:5173, http://172.20.10.2:5173, http://localhost:8084
   notifications:
