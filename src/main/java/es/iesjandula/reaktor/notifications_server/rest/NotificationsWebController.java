@@ -40,7 +40,7 @@ import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerExcep
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/notifications_web")
+@RequestMapping("/notifications/web")
 @Slf4j
 public class NotificationsWebController 
 {
