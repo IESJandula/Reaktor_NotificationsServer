@@ -23,11 +23,14 @@ reaktor:
   privateKeyFile: ${PRIVATE_KEY_FILE}
   googleCredentialsFile: ${GOOGLE_CREDENTIALS_FILE}
   urlCors: https://somos.iesjandula.es
+  firebase_server_url: https://api.iesjandula.es/
+  notifications_server_url: https://api.iesjandula.es/
+  clientId: notifications
+  constantes:
+    notificationsMaxCalendar: 10
+    notificationsMaxEmail: 10
+    notificationsMaxWeb: 10
+  http_connection_timeout: 30000
   gmail:
     from: "reaktor-notifications-server@gmail.com"
     oauthCredentialsFile: ${GMAIL_OAUTH_CREDENTIALS_FILE}
-  notifications:
-    max:
-      calendar: 10
-      email: 10
-      web: 10

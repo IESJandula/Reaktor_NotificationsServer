@@ -41,7 +41,7 @@ import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerExcep
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/notifications_web")
+@RequestMapping("/notifications/web")
 @Slf4j
 public class NotificationsWebController 
 {
@@ -57,13 +57,13 @@ public class NotificationsWebController
 	@Autowired
 	private INotificacionWebAplicacionRepository notificacionWebAplicacionRepository ;
 
-	@Value("${" + Constants.REAKTOR_NOTIFICATIONES_MAX_CALENDAR + "}")
+	@Value("${" + Constants.NOTIFICATIONS_MAX_CALENDAR + "}")
 	private int notifMaxCalendar ;
 
-	@Value("${" + Constants.REAKTOR_NOTIFICATIONES_MAX_EMAIL + "}")
+	@Value("${" + Constants.NOTIFICATIONS_MAX_EMAIL + "}")
 	private int notifMaxEmail ;
 
-	@Value("${" + Constants.REAKTOR_NOTIFICATIONS_MAX_WEB + "}")
+	@Value("${" + Constants.NOTIFICATIONS_MAX_WEB + "}")
 	private int notifMaxWeb ;
 
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")

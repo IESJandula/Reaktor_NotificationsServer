@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import es.iesjandula.reaktor.base.security.models.DtoAplicacion;
-import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.notifications_server.dtos.EmailRequestDto;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
+import es.iesjandula.reaktor.base_client.security.models.DtoAplicacion;
+import es.iesjandula.reaktor.base_client.utils.BaseConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
@@ -44,7 +44,7 @@ import es.iesjandula.reaktor.notifications_server.repository.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/email")
+@RequestMapping("/notifications/email")
 public class SendEmailController
 {
     /* Atributo - Credenciales de Gmail */

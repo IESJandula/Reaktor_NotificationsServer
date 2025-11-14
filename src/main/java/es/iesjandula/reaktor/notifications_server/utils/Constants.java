@@ -32,13 +32,13 @@ public class Constants
 	/*********************************************************/
 
 	/** Propiedades YAML - Notificaciones - Calendar */
-	public static final String REAKTOR_NOTIFICATIONES_MAX_CALENDAR = "reaktor.notifications.max.calendar" ;
+	public static final String NOTIFICATIONS_MAX_CALENDAR = "reaktor.constantes.notificationsMaxCalendar" ;
 
 	/** Propiedades YAML - Notificaciones - Email */
-	public static final String REAKTOR_NOTIFICATIONES_MAX_EMAIL    = "reaktor.notifications.max.email" ;
+	public static final String NOTIFICATIONS_MAX_EMAIL    = "reaktor.constantes.notificationsMaxEmail" ;
 
 	/** Propiedades YAML - Notificaciones - Web */
-	public static final String REAKTOR_NOTIFICATIONS_MAX_WEB       = "reaktor.notifications.max.web" ;
+	public static final String NOTIFICATIONS_MAX_WEB      = "reaktor.constantes.notificationsMaxWeb" ;
 
 
 	/*********************************************************/
