@@ -26,6 +26,8 @@ public class Constants
 	
 	/** Error - Error en el cambio de estado de la notificación web */
 	public static final int ERR_NOTIFICATIONS_WEB_CHANGE_STATE	  = 102 ;
+	
+	public final static int CONSTANTE_NO_ENCONTRADA = 50;
 
 	/*********************************************************/
 	/****************** Propiedades YAML *********************/
