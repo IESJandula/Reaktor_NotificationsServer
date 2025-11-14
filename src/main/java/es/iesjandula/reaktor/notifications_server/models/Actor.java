@@ -27,11 +27,11 @@ public abstract class Actor
     
     /** Atributo - Notificaciones de hoy de calendario */
     @Column 
-    private int notifHoyCalendar ;
+    private Integer notifHoyCalendar ;
     
     /** Atributo - Notificaciones máximas de calendario */
     @Column
-    private int notifMaxCalendar ;
+    private Integer notifMaxCalendar ;
 
     /** Fecha de la última notificación - Email */
     @Column
@@ -39,11 +39,11 @@ public abstract class Actor
     
     /** Atributo - Notificaciones de hoy de email */
     @Column
-    private int notifHoyEmail ;
+    private Integer notifHoyEmail ;
     
     /** Atributo - Notificaciones máximas de email */
     @Column
-    private int notifMaxEmail ;
+    private Integer notifMaxEmail ;
 
     /** Fecha de la última notificación - Web */
     @Column
@@ -51,11 +51,11 @@ public abstract class Actor
     
     /** Atributo - Notificaciones de hoy de web */
     @Column
-    private int notifHoyWeb ;
+    private Integer notifHoyWeb ;
     
     /** Atributo - Notificaciones máximas de web */
     @Column
-    private int notifMaxWeb ;
+    private Integer notifMaxWeb ;
 
     /**
      * @return lista de roles deserializada

@@ -29,12 +29,15 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
 
+import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.aplicacion.NotificacionEmailAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario.*;
 import es.iesjandula.reaktor.notifications_server.repository.*;
 
 @Slf4j
 @RestController
+@RequestMapping("/api/email")
 public class SendEmailController
 {
     /* Atributo - Credenciales de Gmail */
@@ -60,31 +63,39 @@ public class SendEmailController
     /* Atributo - Repositorio de usuarios */
     @Autowired 
     private IUsuarioRepository usuarioRepository;
+    
+    @Autowired
+    private INotificacionEmailAplicacionRepository notificacionEmailAplicacionRepository;
+
+    @Autowired
+    private IAplicacionRepository aplicacionRepository;
 
     /* Atributo - Remitente del email */
     @Value("${reaktor.gmail.from}")
     private String from;
 
 
-    @RequestMapping(method = RequestMethod.POST, value = "/")
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/send")
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
     public ResponseEntity<?> crearNotificacionEmail(@RequestBody EmailRequestDto emailRequestDto)
     {
         try
         {
-            // Primero creamos los objetos en BBDD
-            NotificacionEmailUsuario notificacionEmailUsuario = this.crearNotificacionEmailBBDD(emailRequestDto) ;
+            // Primero creamos los objetos en BBDD (notificación asociada a la aplicación que la envía)
+            NotificacionEmailAplicacion notificacionEmailAplicacion = this.crearNotificacionEmailBBDD(emailRequestDto);
 
             // Enviar el correo a través de Gmail API
-            this.enviarCorreoGmailAPI(emailRequestDto, notificacionEmailUsuario);
+            this.enviarCorreoGmailAPI(emailRequestDto);
 
             // Actualizamos el indicador de envío de la notificación de email
-            notificacionEmailUsuario.setEnviado(true);
+            notificacionEmailAplicacion.setEnviado(true);
 
             // Guardamos la notificación de email en la base de datos
-            this.notificacionEmailUsuarioRepository.save(notificacionEmailUsuario);
+            this.notificacionEmailAplicacionRepository.save(notificacionEmailAplicacion);
 
-            log.info("Correo enviado con éxito");
+            log.info("Correo enviado con éxito por la aplicación {}", 
+                     notificacionEmailAplicacion.getAplicacion().getNombre());
+
             return ResponseEntity.ok().build();
         }
         catch (NotificationsServerException exception)
@@ -96,91 +107,120 @@ public class SendEmailController
             String errorMessage = "Error inesperado al enviar el correo electrónico";
             log.error(errorMessage, exception);
 
-            NotificationsServerException notificationsServerException = new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
+            NotificationsServerException notificationsServerException =
+                new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
+
             return ResponseEntity.status(500).body(notificationsServerException.getBodyExceptionMessage());
         }
     }
 
-    /** Método - Crear notificación de email en BBDD 
+    /**
+     * Método - Crear notificación de email en BBDD (para aplicación emisora)
      *
      * @param emailRequestDto - DTO de la petición de email
-     * @return NotificacionEmailUsuario - La notificación de email creada
+     * @return NotificacionEmailAplicacion - La notificación de email creada
      * @throws NotificationsServerException - Si hay un error al crear la notificación de email en la base de datos
-    */
-    private NotificacionEmailUsuario crearNotificacionEmailBBDD(EmailRequestDto emailRequestDto) throws NotificationsServerException
+     */
+    private NotificacionEmailAplicacion crearNotificacionEmailBBDD(EmailRequestDto emailRequestDto) throws NotificationsServerException
     {
-        // Creamos la notificación de email
-        NotificacionEmailUsuario notificacion = new NotificacionEmailUsuario();
-
-        // Añadimos el asunto y el contenido de la notificación
-        notificacion.setAsunto(emailRequestDto.getSubject());
-        notificacion.setContenido(emailRequestDto.getBody());
-
-        // Añadimos la fecha de creación de la notificación
-        notificacion.setFechaCreacion(new Date());
-
-        // Añadimos el usuario emisor a la notificación
-        notificacion.setUsuario(this.obtenerUsuarioPorEmail(this.from));
-
-        // Guardamos la notificación en la base de datos
-        NotificacionEmailUsuario notificacionEmailUsuario = this.notificacionEmailUsuarioRepository.save(notificacion);
-
-        // Añadimos los destinatarios de la notificación
-        if (emailRequestDto.getTo() != null)
+        try
         {
-            for (String correo : emailRequestDto.getTo())
+            // ==========================================================
+            // 1️⃣ Buscar o crear la aplicación emisora
+            // ==========================================================
+            Aplicacion aplicacion = this.aplicacionRepository.findByNombre("Reaktor-NotificationsServer");
+
+            if (aplicacion == null)
             {
-                // Obtenemos el usuario destinatario
-                Usuario usuarioPara = this.obtenerUsuarioPorEmail(correo);
-
-                // Creamos la notificación de email para el usuario destinatario
-                NotificacionEmailParaUsuario notificacionEmailParaUsuario = new NotificacionEmailParaUsuario();
-                notificacionEmailParaUsuario.setUsuario(usuarioPara);
-                notificacionEmailParaUsuario.setNotificacionEmailUsuario(notificacionEmailUsuario);
-
-                // Guardamos la notificación de email para el usuario destinatario en la base de datos
-                this.paraUsuarioRepository.save(notificacionEmailParaUsuario);
+                aplicacion = new Aplicacion();
+                aplicacion.setNombre("Reaktor-NotificationsServer");
+                aplicacion = this.aplicacionRepository.save(aplicacion);
             }
-        }
 
-        // Añadimos las copias de la notificación
-        if (emailRequestDto.getCc() != null)
+            // ==========================================================
+            // 2️⃣ Crear la notificación de email para la aplicación
+            // ==========================================================
+            NotificacionEmailAplicacion notificacionAplicacion = new NotificacionEmailAplicacion();
+
+            // Asignar la aplicación emisora
+            notificacionAplicacion.setAplicacion(aplicacion);
+
+            // Asignar asunto, contenido y fecha de creación
+            notificacionAplicacion.setAsunto(emailRequestDto.getSubject());
+            notificacionAplicacion.setContenido(emailRequestDto.getBody());
+            notificacionAplicacion.setFechaCreacion(new Date());
+
+            // Guardar la notificación principal
+            NotificacionEmailAplicacion saved = this.notificacionEmailAplicacionRepository.save(notificacionAplicacion);
+
+            // ==========================================================
+            // 3️⃣ Guardar los destinatarios del email (TO)
+            // ==========================================================
+            if (emailRequestDto.getTo() != null)
+            {
+                for (String correo : emailRequestDto.getTo())
+                {
+                    Usuario usuarioPara = this.obtenerUsuarioPorEmail(correo);
+
+                    NotificacionEmailParaUsuario notificacionPara = new NotificacionEmailParaUsuario();
+                    notificacionPara.setUsuario(usuarioPara);
+                    notificacionPara.setNotificacionEmailUsuario(null); // no hay usuario, solo aplicación
+
+                    this.paraUsuarioRepository.save(notificacionPara);
+                }
+            }
+
+            // ==========================================================
+            // 4️⃣ Guardar los destinatarios en copia (CC)
+            // ==========================================================
+            if (emailRequestDto.getCc() != null)
+            {
+                for (String correo : emailRequestDto.getCc())
+                {
+                    Usuario usuarioCopia = this.obtenerUsuarioPorEmail(correo);
+
+                    NotificacionEmailCopiaUsuario notificacionCopia = new NotificacionEmailCopiaUsuario();
+                    notificacionCopia.setUsuario(usuarioCopia);
+                    notificacionCopia.setNotificacionEmailUsuario(null);
+
+                    this.copiaUsuarioRepository.save(notificacionCopia);
+                }
+            }
+
+            // ==========================================================
+            // 5️⃣ Guardar los destinatarios en copia oculta (BCC)
+            // ==========================================================
+            if (emailRequestDto.getBcc() != null)
+            {
+                for (String correo : emailRequestDto.getBcc())
+                {
+                    Usuario usuarioCopiaOculta = this.obtenerUsuarioPorEmail(correo);
+
+                    NotificacionEmailCopiaOcultaUsuario notificacionCopiaOculta = new NotificacionEmailCopiaOcultaUsuario();
+                    notificacionCopiaOculta.setUsuario(usuarioCopiaOculta);
+                    notificacionCopiaOculta.setNotificacionEmailUsuario(null);
+
+                    this.copiaOcultaUsuarioRepository.save(notificacionCopiaOculta);
+                }
+            }
+
+            // ==========================================================
+            // 6️⃣ Registro completo
+            // ==========================================================
+            log.info("Notificación creada correctamente para la aplicación '{}'", aplicacion.getNombre());
+
+            return saved;
+        }
+        catch (Exception exception)
         {
-            for (String correo : emailRequestDto.getCc())
-            {
-                // Obtenemos el usuario copia
-                Usuario usuarioCopia = this.obtenerUsuarioPorEmail(correo);
-
-                // Creamos la notificación de email para el usuario copia
-                NotificacionEmailCopiaUsuario notificacionEmailCopiaUsuario = new NotificacionEmailCopiaUsuario();
-                notificacionEmailCopiaUsuario.setUsuario(usuarioCopia);
-                notificacionEmailCopiaUsuario.setNotificacionEmailUsuario(notificacionEmailUsuario);
-
-                // Guardamos la notificación de email para el usuario copia en la base de datos
-                this.copiaUsuarioRepository.save(notificacionEmailCopiaUsuario);
-            }
+            String errorMessage = "Error al crear la notificación de email de aplicación en base de datos";
+            log.error(errorMessage, exception);
+            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
         }
-
-        // Añadimos las copias ocultas de la notificación
-        if (emailRequestDto.getBcc() != null)
-        {
-            for (String correo : emailRequestDto.getBcc())
-            {
-                // Obtenemos el usuario copia oculta
-                Usuario usuarioCopiaOculta = this.obtenerUsuarioPorEmail(correo);
-
-                // Creamos la notificación de email para el usuario copia oculta
-                NotificacionEmailCopiaOcultaUsuario notificacionEmailCopiaOcultaUsuario = new NotificacionEmailCopiaOcultaUsuario();
-                notificacionEmailCopiaOcultaUsuario.setUsuario(usuarioCopiaOculta);
-                notificacionEmailCopiaOcultaUsuario.setNotificacionEmailUsuario(notificacionEmailUsuario);
-
-                // Guardamos la notificación de email para el usuario copia oculta en la base de datos
-                this.copiaOcultaUsuarioRepository.save(notificacionEmailCopiaOcultaUsuario);
-            }
-        }
-
-        return notificacionEmailUsuario;
     }
+
+
+
 
     /** Método - Obtener usuario por email
      *
@@ -202,41 +242,54 @@ public class SendEmailController
         return usuarioOptional.get();
     }
 
-    /** Método - Enviar correo a través de Gmail API
+    /**
+     * Método - Enviar correo a través de Gmail API
      *
      * @param emailRequestDto - La petición de email a enviar
-     * @param notificacionEmailUsuario - La notificación de email a enviar
      * @throws NotificationsServerException - Si hay un error al enviar el correo electrónico
      */
-    private void enviarCorreoGmailAPI(EmailRequestDto emailRequestDto, NotificacionEmailUsuario notificacionEmailUsuario) throws NotificationsServerException
+    private void enviarCorreoGmailAPI(EmailRequestDto emailRequestDto) throws NotificationsServerException
     {
-        // Configuro el servicio de Gmail
-        Gmail service = this.enviarCorreGmailAPICrearServicioGmail();
-
-        // Configuro el mensaje de email
-        MimeMessage email = this.enviarCorreoGmailAPICrearMensajeEmail();
-
-        // Añado el remitente, subject y contenido del email
-        this.enviarCorreoGmailAPIConfigurarRemitenteSubjectContenido(email, emailRequestDto);
-        
-        // Configuro los destinatarios del email
-        this.enviarCorreoGmailAPIConfigurarDestinatarios(email, emailRequestDto);
-
-        // Configuro el envío del email y obtengo el mensaje de email
-        Message message = this.enviarCorreoGmailAPIConfigurarEnvio(email, emailRequestDto);
-
         try
         {
-            // Envío el email
+            // Configuro el servicio de Gmail
+            Gmail service = this.enviarCorreGmailAPICrearServicioGmail();
+
+            // Configuro el mensaje de email
+            MimeMessage email = this.enviarCorreoGmailAPICrearMensajeEmail();
+
+            // Añado el remitente, subject y contenido del email
+            this.enviarCorreoGmailAPIConfigurarRemitenteSubjectContenido(email, emailRequestDto);
+
+            // Configuro los destinatarios del email
+            this.enviarCorreoGmailAPIConfigurarDestinatarios(email, emailRequestDto);
+
+            // Configuro el envío del email y obtengo el mensaje final a enviar
+            Message message = this.enviarCorreoGmailAPIConfigurarEnvio(email, emailRequestDto);
+
+            // Envío el email mediante Gmail API
             service.users().messages().send("me", message).execute();
+
+            log.info("Email enviado correctamente mediante Gmail API");
+        }
+        catch (NotificationsServerException exception)
+        {
+            // Propago la excepción tal cual si ya es controlada
+            throw exception;
         }
         catch (Exception exception)
         {
+            // Error inesperado al enviar el correo
             String errorMessage = "Error al enviar el email";
             log.error(errorMessage, exception);
-            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
+            throw new NotificationsServerException(
+                    Constants.ERR_GENERIC_EXCEPTION_CODE,
+                    errorMessage,
+                    exception
+            );
         }
     }
+
 
     /** Método - Crear servicio de Gmail
      *
@@ -384,4 +437,36 @@ public class SendEmailController
             throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
         }
     }
+    
+    /**
+     * Verifica si el usuario puede enviar otro email y actualiza sus contadores.
+     *
+     * @param usuario Usuario que intenta enviar un correo
+     * @throws NotificationsServerException Si supera el máximo diario permitido
+     */
+    private void verificarYActualizarEnviosEmail(Usuario usuario) throws NotificationsServerException
+    {
+        // Si la fecha de la última notificación no es de hoy, reiniciamos contador
+        if (usuario.getFechaUltimaNotificacionEmail() == null ||
+            !usuario.getFechaUltimaNotificacionEmail().toLocalDate().equals(java.time.LocalDate.now()))
+        {
+            usuario.setNotifHoyEmail(0);
+        }
+
+        // Comprobar límite diario
+        if (usuario.getNotifHoyEmail() >= usuario.getNotifMaxEmail())
+        {
+            String errorMessage = "El usuario " + usuario.getEmail() + " ha superado el máximo de emails diarios permitidos.";
+            log.warn(errorMessage);
+            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, null);
+        }
+
+        // Actualizar fecha y contador
+        usuario.setFechaUltimaNotificacionEmail(java.time.LocalDateTime.now());
+        usuario.setNotifHoyEmail(usuario.getNotifHoyEmail() + 1);
+
+        // Guardar cambios
+        this.usuarioRepository.save(usuario);
+    }
+
 }

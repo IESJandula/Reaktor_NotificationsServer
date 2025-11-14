@@ -36,4 +36,7 @@ public abstract class NotificacionEmail
 	
 	@Column
 	private String contenido ;
+	
+	@Column
+	private boolean enviado = false;
 }
