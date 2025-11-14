@@ -41,9 +41,5 @@ public class Usuario extends Actor
 	/** Atributo - Fecha de nacimiento */
 	@Column
 	private Date fechaNacimiento ;
-	
-	/** Atributo - Felicitaciones */
-	@Column
-	private Boolean felicitar ;
 }
 

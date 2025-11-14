@@ -4,8 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
+import es.iesjandula.reaktor.base.security.models.DtoAplicacion;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.notifications_server.dtos.EmailRequestDto;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
@@ -31,8 +36,10 @@ import com.google.api.services.gmail.model.Message;
 
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
-import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.aplicacion.NotificacionEmailAplicacion;
-import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario.*;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailAplicacion;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailCopiaOcultaUsuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailCopiaUsuario;
+import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailParaUsuario;
 import es.iesjandula.reaktor.notifications_server.repository.*;
 
 @Slf4j
@@ -43,10 +50,6 @@ public class SendEmailController
     /* Atributo - Credenciales de Gmail */
     @Autowired 
     private Credential gmailCredentials;
-    
-    /* Atributo - Repositorio de notificaciones de emails de usuarios */
-    @Autowired 
-    private INotificacionesEmailUsuarioRepository notificacionEmailUsuarioRepository;
     
     /* Atributo - Repositorio de notificaciones de emails para usuarios */
     @Autowired 
@@ -77,12 +80,13 @@ public class SendEmailController
 
     @RequestMapping(method = RequestMethod.POST, value = "/send")
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
-    public ResponseEntity<?> crearNotificacionEmail(@RequestBody EmailRequestDto emailRequestDto)
+    public ResponseEntity<?> crearNotificacionEmail(@AuthenticationPrincipal DtoAplicacion aplicacion,
+                                                    @RequestBody EmailRequestDto emailRequestDto)
     {
         try
         {
             // Primero creamos los objetos en BBDD (notificación asociada a la aplicación que la envía)
-            NotificacionEmailAplicacion notificacionEmailAplicacion = this.crearNotificacionEmailBBDD(emailRequestDto);
+            NotificacionEmailAplicacion notificacionEmailAplicacion = this.crearNotificacionEmailBBDD(aplicacion, emailRequestDto);
 
             // Enviar el correo a través de Gmail API
             this.enviarCorreoGmailAPI(emailRequestDto);
@@ -117,25 +121,20 @@ public class SendEmailController
     /**
      * Método - Crear notificación de email en BBDD (para aplicación emisora)
      *
+     * @param dtoAplicacion - La aplicación emisora
      * @param emailRequestDto - DTO de la petición de email
      * @return NotificacionEmailAplicacion - La notificación de email creada
      * @throws NotificationsServerException - Si hay un error al crear la notificación de email en la base de datos
      */
-    private NotificacionEmailAplicacion crearNotificacionEmailBBDD(EmailRequestDto emailRequestDto) throws NotificationsServerException
+    private NotificacionEmailAplicacion crearNotificacionEmailBBDD(DtoAplicacion dtoAplicacion, EmailRequestDto emailRequestDto) throws NotificationsServerException
     {
         try
         {
-            // ==========================================================
-            // 1️⃣ Buscar o crear la aplicación emisora
-            // ==========================================================
-            Aplicacion aplicacion = this.aplicacionRepository.findByNombre("Reaktor-NotificationsServer");
+            // Buscamos o creamos la aplicación emisora
+            Aplicacion aplicacion = this.buscarOCrearAplicacion(dtoAplicacion);
 
-            if (aplicacion == null)
-            {
-                aplicacion = new Aplicacion();
-                aplicacion.setNombre("Reaktor-NotificationsServer");
-                aplicacion = this.aplicacionRepository.save(aplicacion);
-            }
+            // Verificamos si la aplicación puede enviar otro email
+            this.verificarYActualizarEnviosEmail(aplicacion);
 
             // ==========================================================
             // 2️⃣ Crear la notificación de email para la aplicación
@@ -151,7 +150,7 @@ public class SendEmailController
             notificacionAplicacion.setFechaCreacion(new Date());
 
             // Guardar la notificación principal
-            NotificacionEmailAplicacion saved = this.notificacionEmailAplicacionRepository.save(notificacionAplicacion);
+            NotificacionEmailAplicacion notificacionEmailAplicacion = this.notificacionEmailAplicacionRepository.save(notificacionAplicacion);
 
             // ==========================================================
             // 3️⃣ Guardar los destinatarios del email (TO)
@@ -164,7 +163,7 @@ public class SendEmailController
 
                     NotificacionEmailParaUsuario notificacionPara = new NotificacionEmailParaUsuario();
                     notificacionPara.setUsuario(usuarioPara);
-                    notificacionPara.setNotificacionEmailUsuario(null); // no hay usuario, solo aplicación
+                    notificacionPara.setNotificacionEmailAplicacion(notificacionEmailAplicacion);
 
                     this.paraUsuarioRepository.save(notificacionPara);
                 }
@@ -181,7 +180,7 @@ public class SendEmailController
 
                     NotificacionEmailCopiaUsuario notificacionCopia = new NotificacionEmailCopiaUsuario();
                     notificacionCopia.setUsuario(usuarioCopia);
-                    notificacionCopia.setNotificacionEmailUsuario(null);
+                    notificacionCopia.setNotificacionEmailAplicacion(notificacionEmailAplicacion);
 
                     this.copiaUsuarioRepository.save(notificacionCopia);
                 }
@@ -198,7 +197,7 @@ public class SendEmailController
 
                     NotificacionEmailCopiaOcultaUsuario notificacionCopiaOculta = new NotificacionEmailCopiaOcultaUsuario();
                     notificacionCopiaOculta.setUsuario(usuarioCopiaOculta);
-                    notificacionCopiaOculta.setNotificacionEmailUsuario(null);
+                    notificacionCopiaOculta.setNotificacionEmailAplicacion(notificacionEmailAplicacion);
 
                     this.copiaOcultaUsuarioRepository.save(notificacionCopiaOculta);
                 }
@@ -209,7 +208,7 @@ public class SendEmailController
             // ==========================================================
             log.info("Notificación creada correctamente para la aplicación '{}'", aplicacion.getNombre());
 
-            return saved;
+            return notificacionEmailAplicacion;
         }
         catch (Exception exception)
         {
@@ -219,7 +218,63 @@ public class SendEmailController
         }
     }
 
+    /**
+     * Método - Buscar o crear la aplicación emisora
+     *
+     * @param dtoAplicacion - La aplicación emisora
+     * @return Aplicacion - La aplicación emisora creada
+     */
+    private Aplicacion buscarOCrearAplicacion(DtoAplicacion dtoAplicacion)
+    {
+        Aplicacion aplicacion = this.aplicacionRepository.findByNombre(dtoAplicacion.getNombre());
+        if (aplicacion == null)
+        {
+            aplicacion = new Aplicacion();
+            aplicacion.setNombre(dtoAplicacion.getNombre());
 
+            // Cuando tengas hecho la tabla de constantes, deberás devolver aquí los valores almacenados
+            aplicacion.setNotifMaxWeb(10);
+            aplicacion.setNotifMaxEmail(10);
+            aplicacion.setNotifMaxCalendar(10);
+
+            // Almacenamos la aplicación en la base de datos
+            aplicacion = this.aplicacionRepository.save(aplicacion);
+        }
+
+        return aplicacion;
+    }
+
+    /**
+     * Verifica si el usuario puede enviar otro email y actualiza sus contadores.
+     *
+     * @param aplicacion Aplicación que intenta enviar un correo
+     * @throws NotificationsServerException Si supera el máximo diario permitido
+     */
+    private void verificarYActualizarEnviosEmail(Aplicacion aplicacion) throws NotificationsServerException
+    {
+        // Si la fecha de la última notificación no es de hoy, reiniciamos contador
+        if (aplicacion.getFechaUltimaNotificacionEmail() == null ||
+            !aplicacion.getFechaUltimaNotificacionEmail().toLocalDate().equals(java.time.LocalDate.now()))
+        {
+            aplicacion.setNotifHoyEmail(0);
+        }
+
+        // Comprobar límite diario
+        if (aplicacion.getNotifHoyEmail() > aplicacion.getNotifMaxEmail())
+        {
+            String errorMessage = "La aplicación " + aplicacion.getNombre() + " ha superado el máximo de emails diarios permitidos.";
+            log.warn(errorMessage);
+
+            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage);
+        }
+
+        // Actualizar fecha y contador
+        aplicacion.setFechaUltimaNotificacionEmail(java.time.LocalDateTime.now());
+        aplicacion.setNotifHoyEmail(aplicacion.getNotifHoyEmail() + 1);
+
+        // Guardar cambios
+        this.aplicacionRepository.save(aplicacion);
+    }
 
 
     /** Método - Obtener usuario por email
@@ -437,36 +492,4 @@ public class SendEmailController
             throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
         }
     }
-    
-    /**
-     * Verifica si el usuario puede enviar otro email y actualiza sus contadores.
-     *
-     * @param usuario Usuario que intenta enviar un correo
-     * @throws NotificationsServerException Si supera el máximo diario permitido
-     */
-    private void verificarYActualizarEnviosEmail(Usuario usuario) throws NotificationsServerException
-    {
-        // Si la fecha de la última notificación no es de hoy, reiniciamos contador
-        if (usuario.getFechaUltimaNotificacionEmail() == null ||
-            !usuario.getFechaUltimaNotificacionEmail().toLocalDate().equals(java.time.LocalDate.now()))
-        {
-            usuario.setNotifHoyEmail(0);
-        }
-
-        // Comprobar límite diario
-        if (usuario.getNotifHoyEmail() >= usuario.getNotifMaxEmail())
-        {
-            String errorMessage = "El usuario " + usuario.getEmail() + " ha superado el máximo de emails diarios permitidos.";
-            log.warn(errorMessage);
-            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, null);
-        }
-
-        // Actualizar fecha y contador
-        usuario.setFechaUltimaNotificacionEmail(java.time.LocalDateTime.now());
-        usuario.setNotifHoyEmail(usuario.getNotifHoyEmail() + 1);
-
-        // Guardar cambios
-        this.usuarioRepository.save(usuario);
-    }
-
 }

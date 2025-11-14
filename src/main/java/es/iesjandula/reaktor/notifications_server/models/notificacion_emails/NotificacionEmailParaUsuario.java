@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario;
+package es.iesjandula.reaktor.notifications_server.models.notificacion_emails;
 
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import jakarta.persistence.Entity;
@@ -24,7 +24,7 @@ public class NotificacionEmailParaUsuario
 	private Long id ;
 
 	@ManyToOne
-    private NotificacionEmailUsuario notificacionEmailUsuario;
+    private NotificacionEmailAplicacion notificacionEmailAplicacion;
 
 	@ManyToOne
 	private Usuario usuario;

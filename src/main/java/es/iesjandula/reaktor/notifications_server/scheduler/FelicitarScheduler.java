@@ -49,8 +49,8 @@ public class FelicitarScheduler
                     int mesNacimiento = calendarNacimiento.get(Calendar.MONTH);
                     int diaNacimiento = calendarNacimiento.get(Calendar.DAY_OF_MONTH);
 
-                    // Actualizamos el atributo felicitar del usuario
-                    usuario.setFelicitar(mesNacimiento == mesActual && diaNacimiento == diaActual);
+                    // Lo notificamos al endpoint de SendEmailController
+                    //this.sendEmailController.sendEmail(usuario.getEmail(), "Felicitaciones", "Felicitaciones por su cumpleaños");
                 }
             }
 
