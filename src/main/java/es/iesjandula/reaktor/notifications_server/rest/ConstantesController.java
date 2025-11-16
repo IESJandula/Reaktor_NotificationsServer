@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.notifications_server.dtos.DtoConstantes;
 import es.iesjandula.reaktor.notifications_server.models.ConstantesNotificaciones;
-import es.iesjandula.reaktor.notifications_server.repository.ConstantesRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IConstantesRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import lombok.extern.log4j.Log4j2;
@@ -26,7 +26,7 @@ public class ConstantesController
 {
 
 	@Autowired
-	private ConstantesRepository constanteRepository;
+	private IConstantesRepository constanteRepository;
 
 	@PreAuthorize("hasAnyRole('" + BaseConstants.ROLE_ADMINISTRADOR + "', '" + BaseConstants.ROLE_DIRECCION + "')")
 	@RequestMapping(method = RequestMethod.GET)

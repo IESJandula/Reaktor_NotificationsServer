@@ -10,11 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import es.iesjandula.reaktor.base.security.models.DtoAplicacion;
 import es.iesjandula.reaktor.notifications_server.dtos.EmailRequestDto;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
-import es.iesjandula.reaktor.base_client.security.models.DtoAplicacion;
-import es.iesjandula.reaktor.base_client.utils.BaseConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
@@ -79,7 +78,7 @@ public class SendEmailController
 
 
     @RequestMapping(method = RequestMethod.POST, value = "/send")
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
+    @PreAuthorize("hasRole('" + es.iesjandula.reaktor.base.utils.BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
     public ResponseEntity<?> crearNotificacionEmail(@AuthenticationPrincipal DtoAplicacion aplicacion,
                                                     @RequestBody EmailRequestDto emailRequestDto)
     {

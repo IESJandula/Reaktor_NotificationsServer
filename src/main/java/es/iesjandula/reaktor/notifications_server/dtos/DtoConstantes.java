@@ -26,6 +26,6 @@ public class DtoConstantes
 	private String clave;
 
 	/** Valor asociado a la constante */
-	private String valor;
+	private int valor;
 	
 }

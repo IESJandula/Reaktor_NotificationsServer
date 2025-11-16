@@ -22,6 +22,6 @@ public class ConstantesNotificaciones
 	
 	/** Valor asociado a la constante */
 	@Column
-	private String valor ;
+	private int valor ;
 	
 }

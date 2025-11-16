@@ -11,7 +11,7 @@ import es.iesjandula.reaktor.notifications_server.dtos.DtoConstantes;
 import es.iesjandula.reaktor.notifications_server.models.ConstantesNotificaciones;
 
 @Repository
-public interface ConstantesRepository extends JpaRepository<ConstantesNotificaciones, String>
+public interface IConstantesRepository extends JpaRepository<ConstantesNotificaciones, String>
 {
 
 	/**
@@ -27,7 +27,7 @@ public interface ConstantesRepository extends JpaRepository<ConstantesNotificaci
      * 
      * @return lista de constantes en formato DtoConstantesNotificaciones
      */
-    @Query("SELECT new es.iesjandula.reaktor.notifications_server.dtos.DtoConstantesNotificaciones(c.clave, c.valor) FROM ConstantesNotificaciones c")
+    @Query("SELECT new es.iesjandula.reaktor.notifications_server.dtos.DtoConstantes(c.clave, c.valor) FROM ConstantesNotificaciones c")
     List<DtoConstantes> encontrarTodoComoDto();
 	
 }

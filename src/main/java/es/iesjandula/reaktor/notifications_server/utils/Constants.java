@@ -41,6 +41,19 @@ public class Constants
 
 	/** Propiedades YAML - Notificaciones - Web */
 	public static final String NOTIFICATIONS_MAX_WEB      = "reaktor.constantes.notificationsMaxWeb" ;
+	
+	// Carga de datos
+	public static final int ERR_CODE_CIERRE_READER = 202;
+	
+	/*********************************************************/
+	/******************* Ficheros y carpetas *****************/
+	/*********************************************************/
+	
+	/** Nombre de la carpeta de configuracion */
+	public static final String NOTFICATIONS_SERVER_CONFIG = "notifications_server_config";
+	
+	/** Nombre de la carpeta de configuracion al ejecutarse */
+	public static final String NOTIFICATIONS_SERVER_CONFIG_EXEC = "notifications_server_config_exec";
 
 
 	/*********************************************************/
@@ -49,4 +62,30 @@ public class Constants
 
 	/** Propiedades Gmail - Application Name */
 	public static final String GMAIL_APPLICATION_NAME = "Reaktor-FirebaseServer" ;
+	
+	/*********************************************************/
+	/******************** Tabla Constantes *******************/
+	/*********************************************************/
+
+	/** Constante - NotificacionesMax email */
+	public static final String TABLA_CONST_NOTIFICATIONS_MAX_EMAIL = "Notificaciones máximas email";
+
+	/** Constante - NotificacionesMax web */
+	public static final String TABLA_CONST_NOTIFICATIONS_MAX_WEB = "Notificaciones máximas web";
+
+	/** Constante - NotificacionesMax calendar */
+	public static final String TABLA_CONST_NOTIFICATIONS_MAX_CALENDAR = "Notificaciones máximas calendar";
+	
+	/*********************************************************/
+	/******************* Parámetros YAML *********************/
+	/*********************************************************/
+	
+	/** Constante - Parámetros YAML - NotificacionesMax Email */
+	public static final String PARAM_YAML_MAX_EMAIL = "reaktor.constantes.notificationsMaxEmail";
+	
+	/** Constante - Parámetros YAML - NotificacionesMax Web */
+	public static final String PARAM_YAML_MAX_WEB = "reaktor.constantes.notificationsMaxWeb";
+	
+	/** Constante - Parámetros YAML - NotificacionesMax Web */
+	public static final String PARAM_YAML_MAX_CALENDAR = "reaktor.constantes.notificationsMaxCalendar";
 }

@@ -1,15 +1,27 @@
 package es.iesjandula.reaktor.notifications_server.config;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import es.iesjandula.reaktor.base.resources_handler.ResourcesHandler;
+import es.iesjandula.reaktor.base.resources_handler.ResourcesHandlerFile;
+import es.iesjandula.reaktor.base.resources_handler.ResourcesHandlerJar;
+import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
+import es.iesjandula.reaktor.notifications_server.models.ConstantesNotificaciones;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IConstantesRepository;
 import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
+import es.iesjandula.reaktor.notifications_server.utils.Constants;
+import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,85 +29,118 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class InicializacionNotificationsServer
 {
-    @Autowired
-    private IAplicacionRepository aplicacionRepository;
+    
+	private IConstantesRepository constantesRepository;
 
-    @Autowired
-    private IUsuarioRepository usuarioRepository;
-
-    @Value("${reaktor.notifications.max.email:10}")
+    @Value("${" + Constants.PARAM_YAML_MAX_EMAIL + "}")
     private int maxEmails;
 
-    @Value("${reaktor.notifications.max.web:10}")
+    @Value("${" + Constants.PARAM_YAML_MAX_WEB + "}")
     private int maxWeb;
 
-    @Value("${reaktor.notifications.max.calendar:10}")
+    @Value("${" + Constants.PARAM_YAML_MAX_CALENDAR + "}")
     private int maxCalendar;
 
     @PostConstruct
-    public void inicializarSistema()
-    {
-        log.info("Inicialización del sistema de NotificationsServer iniciada...");
+	public void inicializarSistema() throws BaseException, NotificationsServerException
+	{
+		// Esta es la carpeta con las subcarpetas y configuraciones
+		ResourcesHandler bookingServerConfig = this.getResourcesHandler(Constants.NOTFICATIONS_SERVER_CONFIG);
 
-        this.inicializarAplicacionesPorDefecto();
-        this.inicializarUsuariosPorDefecto();
+		if (bookingServerConfig != null)
+		{
+			// Nombre de la carpeta destino
+			File bookingServerConfigExec = new File(Constants.NOTIFICATIONS_SERVER_CONFIG_EXEC);
 
-        log.info("Inicialización del sistema de NotificationsServer completada.");
-    }
+			// Copiamos las plantillas (origen) al destino
+			bookingServerConfig.copyToDirectory(bookingServerConfigExec);
+		}
 
-    private void inicializarAplicacionesPorDefecto()
-    {
-        // Aquí puedes agregar las aplicaciones que quieras tener por defecto
-        String[] appsPorDefecto = { "AppNotificaciones", "AppCalendario", "AppWeb" };
+	}
+    
+    /**
+	 * 
+	 * @param resourceFilePath con la carpeta origen que tiene las plantillas
+	 * @return el manejador que crea la estructura
+	 */
+	private ResourcesHandler getResourcesHandler(String resourceFilePath)
+	{
+		ResourcesHandler outcome = null;
 
-        for (String appNombre : appsPorDefecto)
-        {
-            Optional<Aplicacion> appOptional = this.aplicacionRepository.findById(appNombre);
-            if (appOptional.isEmpty())
-            {
-                Aplicacion aplicacion = new Aplicacion();
-                aplicacion.setNombre(appNombre);
+		URL baseDirSubfolderUrl = Thread.currentThread().getContextClassLoader().getResource(resourceFilePath);
+		if (baseDirSubfolderUrl != null)
+		{
+			if (baseDirSubfolderUrl.getProtocol().equalsIgnoreCase("file"))
+			{
+				outcome = new ResourcesHandlerFile(baseDirSubfolderUrl);
+			}
+			else
+			{
+				outcome = new ResourcesHandlerJar(baseDirSubfolderUrl);
+			}
+		}
 
-                // Inicializamos contadores y límites desde el YAML
-                aplicacion.setNotifMaxEmail(this.maxEmails);
-                aplicacion.setNotifMaxWeb(this.maxWeb);
-                aplicacion.setNotifMaxCalendar(this.maxCalendar);
+		return outcome;
+	}
+	
+	/**
+	 * @param reader reader
+	 * @throws BookingError excepción mientras se cerraba el reader
+	 */
+	private void cerrarFlujo(BufferedReader reader) throws NotificationsServerException
+	{
+		if (reader != null)
+		{
+			try
+			{
+				// Cierre del reader
+				reader.close();
+			}
+			catch (IOException ioException)
+			{
+				String errorString = "IOException mientras se cerraba el reader";
 
-                aplicacion.setNotifHoyEmail(0);
-                aplicacion.setNotifHoyWeb(0);
-                aplicacion.setNotifHoyCalendar(0);
+				log.error(errorString, ioException);
+				throw new NotificationsServerException(Constants.ERR_CODE_CIERRE_READER, errorString, ioException);
+			}
+		}
+	}
+	
+	/**
+	 * Este método se encarga de inicializar el sistema con las constantes siempre
+	 * que estemos creando la base de datos ya sea en el entorno de desarrollo o
+	 * ejecutando JAR
+	 */
+	private void inicializarSistemaConConstantes()
+	{
+		// Borramos las constantes
+		this.constantesRepository.deleteAll();
 
-                this.aplicacionRepository.save(aplicacion);
-                log.info("Aplicación '{}' creada por defecto", appNombre);
-            }
-        }
-    }
+		// Cargamos las constantes
+		this.cargarPropiedad(Constants.TABLA_CONST_NOTIFICATIONS_MAX_EMAIL, this.maxEmails);
+		this.cargarPropiedad(Constants.TABLA_CONST_NOTIFICATIONS_MAX_WEB, this.maxWeb);
+		this.cargarPropiedad(Constants.TABLA_CONST_NOTIFICATIONS_MAX_CALENDAR, this.maxCalendar);
+	}
+	
+	/**
+	 * @param key   clave
+	 * @param value valor
+	 */
+	private void cargarPropiedad(String key, int value)
+	{
+		// Verificamos si tiene algún valor
+		Optional<ConstantesNotificaciones> property = this.constantesRepository.findById(key);
 
-    private void inicializarUsuariosPorDefecto()
-    {
-        // Puedes inicializar usuarios de prueba o de administración por defecto
-        String[][] usuariosPorDefecto = {
-            { "admin@reaktor.com", "Admin", "Reaktor" },
-            { "usuario@reaktor.com", "Usuario", "Test" }
-        };
+		// Si está vacío, lo seteamos con el valor del YAML
+		if (property.isEmpty())
+		{
+			ConstantesNotificaciones constante = new ConstantesNotificaciones();
 
-        for (String[] usuarioData : usuariosPorDefecto)
-        {
-            String email = usuarioData[0];
-            Optional<Usuario> usuarioOptional = this.usuarioRepository.findById(email);
-            if (usuarioOptional.isEmpty())
-            {
-                Usuario usuario = new Usuario();
-                usuario.setEmail(email);
-                usuario.setNombre(usuarioData[1]);
-                usuario.setApellidos(usuarioData[2]);
+			constante.setClave(key);
+			constante.setValor(value);
 
-                // Valores opcionales
-                usuario.setDepartamento("Administración");
-
-                this.usuarioRepository.save(usuario);
-                log.info("Usuario '{}' creado por defecto", email);
-            }
-        }
-    }
+			// Almacenamos la constante en BBDD
+			this.constantesRepository.save(constante);
+		}
+	}
 }
