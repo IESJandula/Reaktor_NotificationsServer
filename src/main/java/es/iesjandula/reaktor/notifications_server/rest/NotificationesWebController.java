@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping("/notifications/web")
 @Slf4j
-public class NotificationsWebController 
+public class NotificationesWebController 
 {
 	@Autowired
 	private IAplicacionRepository aplicacionRepository ;
@@ -313,7 +313,6 @@ public class NotificationsWebController
 	@RequestMapping(method = RequestMethod.POST, value = "/apps")
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
 	public ResponseEntity<?> crearNotificacionWebApp(@AuthenticationPrincipal DtoAplicacion aplicacion,
-			                                         @RequestHeader("nombre") String nombre,
 			                                         @RequestHeader("texto") String texto,
 			                                         @RequestHeader("fecha_inicio") String fechaInicio,
 			                                         @RequestHeader("hora_inicio") String horaInicio,
