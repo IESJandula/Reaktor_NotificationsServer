@@ -83,6 +83,6 @@ public class Constants
 	/*********************************************************/
 	
 	/** Crono - Felicitacion */
-	public static final String CRON_FELICITACION = "30 8 20 * * *";
+	public static final String CRON_FELICITACION = "0 0 0 * * *";
 
 }
