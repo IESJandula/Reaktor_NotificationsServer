@@ -29,9 +29,6 @@ public class EmailConfig
 	private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 	private static final List<String> SCOPES = Collections.singletonList("https://www.googleapis.com/auth/gmail.send");
 	private static final String TOKEN_DIRECTORY_PATH = "tokens";
-	
-	@Value("${reaktor.googleCredentialsFile}")
-	private String googleCredentialsFile ;
 
 	@Value("${reaktor.gmail.oauthCredentialsFile}")
 	private String gmailOauthCredentialsFile;

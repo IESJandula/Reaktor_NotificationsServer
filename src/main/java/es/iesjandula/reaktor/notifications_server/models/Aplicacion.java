@@ -1,11 +1,13 @@
 package es.iesjandula.reaktor.notifications_server.models;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import es.iesjandula.reaktor.notifications_server.models.notificacion_calendar.aplicacion.NotificacionCalendarAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -27,6 +29,30 @@ public class Aplicacion extends Actor
     /** Atributo - Nombre descriptivo de la aplicación */
     @Id
     private String nombre ;
+
+    /** Fecha de la última notificación - Calendar */
+    @Column
+    private LocalDateTime fechaUltimaNotificacionCalendar ;
+    
+    /** Atributo - Notificaciones de hoy de calendario */
+    @Column 
+    private Integer notifHoyCalendar ;
+    
+    /** Atributo - Notificaciones máximas de calendario */
+    @Column
+    private Integer notifMaxCalendar ;
+
+    /** Fecha de la última notificación - Email */
+    @Column
+    private LocalDateTime fechaUltimaNotificacionEmail ;
+    
+    /** Atributo - Notificaciones de hoy de email */
+    @Column
+    private Integer notifHoyEmail ;
+    
+    /** Atributo - Notificaciones máximas de email */
+    @Column
+    private Integer notifMaxEmail ;
     
     /** Atributo - Notificaciones de calendario */
     @OneToMany(mappedBy = "aplicacion")

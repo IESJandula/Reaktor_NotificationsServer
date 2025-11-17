@@ -1,7 +1,6 @@
 package es.iesjandula.reaktor.notifications_server.utils;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.File;
 
 /**
  * @author Francisco Manuel Benítez Chico
@@ -9,39 +8,11 @@ import java.util.List;
 public class Constants
 {
 	public static final String STRING_COMA = "," ;
-
-	/*********************************************************/
-	/*************** Tipos de notificaciones *****************/
-	/*********************************************************/
-	
-	/** Tipo de notificación - Solo texto */
-	public static final String TIPO_NOTIFICACION_SOLO_TEXTO     = "Solo texto" ;
-	
-	/** Tipo de notificación - Texto e imagen */
-	public static final String TIPO_NOTIFICACION_TEXTO_E_IMAGEN = "Texto e imagen" ;
-
-	/** Lista de tipos de notificación */
-	public static final List<String> TIPOS_NOTIFICACIONES = Arrays.asList(TIPO_NOTIFICACION_SOLO_TEXTO) ; //, TIPO_NOTIFICACION_TEXTO_E_IMAGEN) ;
-
-
-	/*********************************************************/
-	/*************** Receptores de notificaciones ************/
-	/*********************************************************/
-	
-	/** Receptor de notificación - Profesor */
-	public static final String RECEPTOR_NOTIFICACION_CLAUSTRO = "Todo el claustro" ;
-
-	/** Receptor de notificación - Equipo directivo */
-	public static final String RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO = "Solo el equipo directivo" ;
-
-	/** Receptor de notificación - Administradores */
-	public static final String RECEPTOR_NOTIFICACION_ADMINISTRADORES = "Solo administradores" ;
-
 	
 	/*********************************************************/
 	/*********************** Errores *************************/
 	/*********************************************************/
-	
+
 	/** Error - Excepción genérica - Código */
 	public static final int ERR_GENERIC_EXCEPTION_CODE 			  = 100 ;
 	
@@ -54,26 +25,64 @@ public class Constants
 	/** Error - Error en el cambio de estado de la notificación web */
 	public static final int ERR_NOTIFICATIONS_WEB_CHANGE_STATE	  = 102 ;
 	
-	public final static int CONSTANTE_NO_ENCONTRADA = 50;
+	/** Error - Constante no encontrada */
+	public final static int ERR_CONSTANTE_NO_ENCONTRADA           = 103 ;
+
+	/** Error - Error en el procesamiento del santoral */
+	public static final int ERR_CODE_PROCESANDO_SANTORAL          = 104 ;
+
+	/** Error - Error en el cierre del santoral */	
+	public static final int ERR_CODE_CIERRE_SANTORAL              = 105 ;
 
 	/*********************************************************/
 	/****************** Propiedades YAML *********************/
 	/*********************************************************/
 
-	/** Propiedades YAML - Notificaciones - Calendar */
-	public static final String NOTIFICATIONS_MAX_CALENDAR = "reaktor.constantes.notificationsMaxCalendar" ;
+	/** Propiedades YAML - Constantes - Max Emails */
+	public static final String PARAM_YAML_NOTIFICACIONES_MAX_EMAILS    = "reaktor.constantes.notificationsMaxEmail" ;
 
-	/** Propiedades YAML - Notificaciones - Email */
-	public static final String NOTIFICATIONS_MAX_EMAIL    = "reaktor.constantes.notificationsMaxEmail" ;
+	/** Propiedades YAML - Constantes - Max Web */
+	public static final String PARAM_YAML_NOTIFICACIONES_MAX_WEB       = "reaktor.constantes.notificationsMaxWeb" ;
 
-	/** Propiedades YAML - Notificaciones - Web */
-	public static final String NOTIFICATIONS_MAX_WEB      = "reaktor.constantes.notificationsMaxWeb" ;
+	/** Propiedades YAML - Constantes - Max Calendar */
+	public static final String PARAM_YAML_NOTIFICACIONES_MAX_CALENDAR  = "reaktor.constantes.notificationsMaxCalendar" ;
 
 
 	/*********************************************************/
-	/**************** Propiedades Gmail **********************/
+	/******************** Tabla Constantes *******************/
 	/*********************************************************/
 
-	/** Propiedades Gmail - Application Name */
-	public static final String GMAIL_APPLICATION_NAME = "Reaktor-FirebaseServer" ;
+	/** Constante - Max Emails */
+	public static final String TABLA_CONST_NOTIFICACIONES_MAX_EMAILS   = "Máximo número de notificaciones por email al día";
+
+	/** Constante - Max Web */
+	public static final String TABLA_CONST_NOTIFICACIONES_MAX_WEB      = "Máximo número de notificaciones por web al día";
+
+	/** Constante - Max Calendar */
+	public static final String TABLA_CONST_NOTIFICACIONES_MAX_CALENDAR = "Máximo número de notificaciones por calendar al día";
+
+	/*********************************************************/
+	/******************* Ficheros y carpetas *****************/
+	/*********************************************************/
+
+	/** Nombre de la carpeta de configuracion */
+	public static final String NOTIFICATIONS_SERVER_CONFIG      = "notifications_server_config";
+
+	/** Nombre de la carpeta de configuracion al ejecutarse */
+	public static final String NOTIFICATIONS_SERVER_CONFIG_EXEC = "notifications_server_config_exec";
+
+	/*********************************************************/
+	/******************* Ficheros CSV ***********************/
+	/*********************************************************/
+
+	/** Fichero CSV - Santorales */
+	public static final String FICHERO_SANTORALES = NOTIFICATIONS_SERVER_CONFIG_EXEC + File.separator + "santoral.csv";
+
+	/*********************************************************/
+	/******************* Cronos ******************************/
+	/*********************************************************/
+	
+	/** Crono - Felicitacion */
+	public static final String CRON_FELICITACION = "30 8 20 * * *";
+
 }

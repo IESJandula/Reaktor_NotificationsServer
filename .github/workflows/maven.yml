@@ -26,9 +26,17 @@ jobs:
       env:
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Secreto para la contraseña de la base de datos
         PUBLIC_KEY_FILE: ${{ secrets.PUBLIC_KEY_FILE }} # Secreto para la clave pública para JWT
+        CLIENT_ID: ${{ secrets.CLIENT_ID }} # Secreto para el ID del cliente
+        GMAIL_APP_NAME: ${{ secrets.GMAIL_APP_NAME }} # Secreto para el nombre de la aplicación de Gmail
+        GMAIL_EMAIL_FROM: ${{ secrets.GMAIL_EMAIL_FROM }} # Secreto para el correo electrónico de Gmail
+        GMAIL_OAUTH_CREDENTIALS_FILE: ${{ secrets.GMAIL_OAUTH_CREDENTIALS_FILE }} # Secreto para el archivo de credenciales de OAuth de Gmail
       run: |
         echo "DB_PASSWORD=${DB_PASSWORD}" > src/main/resources/application-VPS-filter.properties
         echo "PUBLIC_KEY_FILE=${PUBLIC_KEY_FILE}" >> src/main/resources/application-VPS-filter.properties
+        echo "CLIENT_ID=${CLIENT_ID}" >> src/main/resources/application-VPS-filter.properties
+        echo "GMAIL_APP_NAME=${GMAIL_APP_NAME}" >> src/main/resources/application-VPS-filter.properties
+        echo "GMAIL_EMAIL_FROM=${GMAIL_EMAIL_FROM}" >> src/main/resources/application-VPS-filter.properties
+        echo "GMAIL_OAUTH_CREDENTIALS_FILE=${GMAIL_OAUTH_CREDENTIALS_FILE}" >> src/main/resources/application-VPS-filter.properties
         mvn clean install -Dspring.config.location=src/main/resources/application-VPS.yaml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive

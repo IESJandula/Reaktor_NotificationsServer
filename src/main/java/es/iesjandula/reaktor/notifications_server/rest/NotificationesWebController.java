@@ -1,17 +1,13 @@
 package es.iesjandula.reaktor.notifications_server.rest;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,13 +20,17 @@ import org.springframework.web.bind.annotation.RestController;
 import es.iesjandula.reaktor.base.security.models.DtoAplicacion;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.base.utils.BaseException;
+import es.iesjandula.reaktor.base_client.utils.BaseClientConstants;
 import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto;
 import es.iesjandula.reaktor.notifications_server.models.Actor;
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
+import es.iesjandula.reaktor.notifications_server.models.Constante;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.NotificacionWeb;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
+import es.iesjandula.reaktor.notifications_server.repository.IConstanteRepository;
 import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebUsuarioRepository;
@@ -38,6 +38,8 @@ import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import lombok.extern.slf4j.Slf4j;
+
+import es.iesjandula.reaktor.base.utils.FechasUtils;
 
 @RestController
 @RequestMapping("/notifications/web")
@@ -56,14 +58,8 @@ public class NotificationesWebController
 	@Autowired
 	private INotificacionWebAplicacionRepository notificacionWebAplicacionRepository ;
 
-	@Value("${" + Constants.NOTIFICATIONS_MAX_CALENDAR + "}")
-	private int notifMaxCalendar ;
-
-	@Value("${" + Constants.NOTIFICATIONS_MAX_EMAIL + "}")
-	private int notifMaxEmail ;
-
-	@Value("${" + Constants.NOTIFICATIONS_MAX_WEB + "}")
-	private int notifMaxWeb ;
+	@Autowired
+	private IConstanteRepository constanteRepository ;
 
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
 	@RequestMapping(method = RequestMethod.GET, value = "/receptors")
@@ -76,7 +72,7 @@ public class NotificationesWebController
 	@RequestMapping(method = RequestMethod.GET, value = "/types")
 	public ResponseEntity<?> obtenerTiposNotificaciones()
 	{
-		return ResponseEntity.ok(Constants.TIPOS_NOTIFICACIONES) ;
+		return ResponseEntity.ok(BaseClientConstants.TIPOS_NOTIFICACIONES) ;
 	}
 
 	/**
@@ -143,8 +139,9 @@ public class NotificationesWebController
 	 * Método auxiliar para obtener el usuario de la base de datos
 	 * @param usuario Usuario extendido
 	 * @return Usuario de la base de datos
+	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	private Usuario obtenerUsuario(DtoUsuarioExtended usuario)
+	private Usuario obtenerUsuario(DtoUsuarioExtended usuario) throws NotificationsServerException
 	{
 		// Creamos variable de usuario
 		Usuario usuarioDatabase = null;
@@ -166,7 +163,7 @@ public class NotificationesWebController
 			usuarioDatabase.setRoles(String.join(",", usuario.getRoles()));
 
 			// Seteamos los campos comunes de la aplicación
-			this.setearCamposComunesActores(usuarioDatabase);
+			this.setearCamposComunesActores(usuarioDatabase, LocalDateTime.now());
 
 			// Guardamos el usuario en la base de datos
 			this.usuarioRepository.saveAndFlush(usuarioDatabase);
@@ -190,13 +187,14 @@ public class NotificationesWebController
 	 * @param horaFin Hora de fin de la notificación web
 	 * @param receptor Receptor de la notificación web
 	 * @param tipo Tipo de notificación web
+	 * @throws BaseException Excepción base
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
 	private void crearNotificacionWebUsuario(Usuario usuario,
 	                                         String texto,
 											 String fechaInicio, String horaInicio,
 											 String fechaFin,    String horaFin,
-											 String receptor,    String tipo) throws NotificationsServerException
+											 String receptor,    String tipo) throws BaseException, NotificationsServerException
 	{
 		// Creamos una instancia de notificación web de usuario
 		NotificacionWebUsuario notificacionWebUsuario = new NotificacionWebUsuario();
@@ -313,13 +311,13 @@ public class NotificationesWebController
 	@RequestMapping(method = RequestMethod.POST, value = "/apps")
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
 	public ResponseEntity<?> crearNotificacionWebApp(@AuthenticationPrincipal DtoAplicacion aplicacion,
-			                                         @RequestHeader("texto") String texto,
-			                                         @RequestHeader("fecha_inicio") String fechaInicio,
-			                                         @RequestHeader("hora_inicio") String horaInicio,
-			                                         @RequestHeader("fecha_fin") String fechaFin,
-			                                         @RequestHeader("hora_fin") String horaFin,
-			                                         @RequestHeader("receptor") String receptor,
-			                                         @RequestHeader("tipo") String tipo)
+													 @RequestHeader("texto") String texto,
+													 @RequestHeader("fechaInicio") String fechaInicio,
+													 @RequestHeader("horaInicio") String horaInicio,
+													 @RequestHeader("fechaFin") String fechaFin,
+													 @RequestHeader("horaFin") String horaFin,
+													 @RequestHeader("receptor") String receptor,
+													 @RequestHeader("tipo") String tipo)
 	{
 	    try 
 	    {
@@ -362,8 +360,9 @@ public class NotificationesWebController
 	 * Método auxiliar para obtener la aplicación de la base de datos
 	 * @param aplicacion Aplicación
 	 * @return Aplicación de la base de datos
+	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	private Aplicacion obtenerAplicacion(DtoAplicacion aplicacion)
+	private Aplicacion obtenerAplicacion(DtoAplicacion aplicacion) throws NotificationsServerException
 	{
 		// Buscamos si existe la aplicación, sino lo creamos
 		Aplicacion aplicacionDatabase = this.aplicacionRepository.findByNombre(aplicacion.getNombre());
@@ -377,11 +376,34 @@ public class NotificationesWebController
 			// Seteamos los receptores de la aplicación
 			aplicacionDatabase.setRoles(String.join(",", aplicacion.getRoles()));
 
+			// Obtenemos la fecha y hora actual
+			LocalDateTime ahora = LocalDateTime.now();
+			
+			// Seteamos los campos comunes de la aplicación
+			this.setearCamposComunesActores(aplicacionDatabase, ahora);
+			
 			// Seteamos los atributos del usuario
 			aplicacionDatabase.setNombre(aplicacion.getNombre());
 
-			// Seteamos los campos comunes de la aplicación
-			this.setearCamposComunesActores(aplicacionDatabase);
+			// Seteamos las fechas de última notificación
+			aplicacionDatabase.setFechaUltimaNotificacionCalendar(ahora) ;
+			aplicacionDatabase.setFechaUltimaNotificacionEmail(ahora) ;
+
+			// Seteamos el número de notificaciones de hoy
+			aplicacionDatabase.setNotifHoyCalendar(0) ;
+			aplicacionDatabase.setNotifHoyEmail(0) ;
+
+			// Obtenemos la constante de notificaciones máximas de tipo email
+			Constante constanteNotificacionesMaxEmail = this.obtenerConstante(Constants.TABLA_CONST_NOTIFICACIONES_MAX_EMAILS) ;
+
+			// Seteamos el número de notificaciones máximas de tipo email
+			aplicacionDatabase.setNotifMaxEmail(Integer.parseInt(constanteNotificacionesMaxEmail.getValor())) ;
+
+			// Obtenemos la constante de notificaciones máximas de tipo calendar
+			Constante constanteNotificacionesMaxCalendar = this.obtenerConstante(Constants.TABLA_CONST_NOTIFICACIONES_MAX_CALENDAR) ;
+
+			// Seteamos el número de notificaciones máximas de tipo calendar
+			aplicacionDatabase.setNotifMaxCalendar(Integer.parseInt(constanteNotificacionesMaxCalendar.getValor())) ;
 
 			// Guardamos la aplicación en la base de datos
 			this.aplicacionRepository.saveAndFlush(aplicacionDatabase);
@@ -393,24 +415,47 @@ public class NotificationesWebController
 	/**
 	 * Método auxiliar para setear los campos comunes de un actor
 	 * @param actor Actor
+	 * @param ahora Fecha y hora actual
+	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	private void setearCamposComunesActores(Actor actor)
+	private void setearCamposComunesActores(Actor actor, LocalDateTime ahora) throws NotificationsServerException
 	{
-		// Seteamos la fecha de la última notificación
-		LocalDateTime ahora = LocalDateTime.now() ;
-		actor.setFechaUltimaNotificacionCalendar(ahora) ;
-		actor.setFechaUltimaNotificacionEmail(ahora) ;
+		// Seteamos la fecha de la última notificación web
 		actor.setFechaUltimaNotificacionWeb(ahora) ;
 
 		// Inicializamos el número de notificaciones hoy
-		actor.setNotifHoyCalendar(0) ;
-		actor.setNotifHoyEmail(0) ;
 		actor.setNotifHoyWeb(0) ;
 
+		// Obtenemos la constante de notificaciones máximas de tipo web
+		Constante constanteNotificacionesMaxWeb = this.obtenerConstante(Constants.TABLA_CONST_NOTIFICACIONES_MAX_WEB) ;
+		
 		// Inicializamos el número de notificaciones máximas
-		actor.setNotifMaxCalendar(this.notifMaxCalendar) ;
-		actor.setNotifMaxEmail(this.notifMaxEmail) ;
-		actor.setNotifMaxWeb(this.notifMaxWeb) ;
+		actor.setNotifMaxWeb(Integer.parseInt(constanteNotificacionesMaxWeb.getValor())) ;
+	}
+
+
+	/**
+	 * Método auxiliar para obtener una constante de la base de datos
+	 * @param clave Clave de la constante
+	 * @return Constante de la base de datos
+	 * @throws NotificationsServerException Excepción de notificaciones web
+	 */
+	private Constante obtenerConstante(String clave) throws NotificationsServerException
+	{
+		// Obtenemos la constante
+		Optional<Constante> optionalConstante = this.constanteRepository.findById(clave) ;
+
+		// Si no existe la constante, la creamos
+		if (!optionalConstante.isPresent())
+		{
+			String errorMessage = "Constante no encontrada: " + clave;
+
+			log.error(errorMessage);
+			throw new NotificationsServerException(Constants.ERR_CONSTANTE_NO_ENCONTRADA, errorMessage);
+		}
+
+		// Obtenemos la constante
+		return optionalConstante.get() ;
 	}
 
 	/**
@@ -439,32 +484,32 @@ public class NotificationesWebController
 		}
 
 		// Validamos el tipo de notificación, solo se permiten los tipos de notificaciones de solo texto y texto e imagen
-		if (!tipo.equalsIgnoreCase(Constants.TIPO_NOTIFICACION_SOLO_TEXTO) && !tipo.equalsIgnoreCase(Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN)) 
+		if (!tipo.equalsIgnoreCase(BaseClientConstants.TIPO_NOTIFICACION_SOLO_TEXTO) && !tipo.equalsIgnoreCase(BaseClientConstants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN)) 
 		{
-			String errorMessage = "Tipo de notificación inválido. Solo se permiten: "  + Constants.TIPO_NOTIFICACION_SOLO_TEXTO + " o "  + Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN;
+			String errorMessage = "Tipo de notificación inválido. Solo se permiten: "  + BaseClientConstants.TIPO_NOTIFICACION_SOLO_TEXTO + " o "  + BaseClientConstants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN;
 			
 			log.error(errorMessage);
 			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
 		}
 
 		// Validamos si se permite adjuntar imagen en notificaciones de nivel SECUNDARIO, no se permite
-		if (tipo.equalsIgnoreCase(Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN) && texto != null && texto.contains("[Imagen:")) 
+		if (tipo.equalsIgnoreCase(BaseClientConstants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN) && texto != null && texto.contains("[Imagen:")) 
 		{
-			String errorMessage = "No se permite adjuntar imagen en notificaciones de tipo de notificación " + Constants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN ;
+			String errorMessage = "No se permite adjuntar imagen en notificaciones de tipo de notificación " + BaseClientConstants.TIPO_NOTIFICACION_TEXTO_E_IMAGEN ;
 			log.error(errorMessage) ;
 			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage) ;
 		}
 		
 		// Validamos el receptor, solo se permiten los receptores de solo administradores, solo equipo directivo y todo el claustro
-		boolean receptorEncontrado = receptor.equals(Constants.RECEPTOR_NOTIFICACION_ADMINISTRADORES) ||
-								     receptor.equals(Constants.RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO) ||
-								     receptor.equals(Constants.RECEPTOR_NOTIFICACION_CLAUSTRO) ;
+		boolean receptorEncontrado = receptor.equals(BaseClientConstants.RECEPTOR_NOTIFICACION_ADMINISTRADORES) ||
+								     receptor.equals(BaseClientConstants.RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO) ||
+								     receptor.equals(BaseClientConstants.RECEPTOR_NOTIFICACION_CLAUSTRO) ;
 
 		if (!receptorEncontrado)
 		{
-			String errorMessage = "Receptor inválido. Solo se permiten: " + Constants.RECEPTOR_NOTIFICACION_ADMINISTRADORES + " o "  +
-																	        Constants.RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO     + " o "  +
-																	        Constants.RECEPTOR_NOTIFICACION_CLAUSTRO ;
+			String errorMessage = "Receptor inválido. Solo se permiten: " + BaseClientConstants.RECEPTOR_NOTIFICACION_ADMINISTRADORES + " o "  +
+																	        BaseClientConstants.RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO     + " o "  +
+																	        BaseClientConstants.RECEPTOR_NOTIFICACION_CLAUSTRO ;
 
 			log.error(errorMessage);
 			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
@@ -481,13 +526,14 @@ public class NotificationesWebController
 	 * @param horaFin Hora de fin de la notificación web
 	 * @param receptor Receptor de la notificación web
 	 * @param tipo Tipo de notificación web
+	 * @throws BaseException Excepción base
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
 	private void crearNotificacionWebApp(Aplicacion aplicacion, 
 	                                     String texto,
 										 String fechaInicio, String horaInicio,
 										 String fechaFin,    String horaFin,
-										 String receptor,    String tipo) throws NotificationsServerException
+										 String receptor,    String tipo) throws BaseException, NotificationsServerException
 	{
 		// Creamos una instancia de notificación web de aplicación
 		NotificacionWebAplicacion notificacionWebAplicacion = new NotificacionWebAplicacion();
@@ -512,13 +558,14 @@ public class NotificationesWebController
 	 * @param horaFin Hora de fin de la notificación web
 	 * @param receptor Receptor de la notificación web
 	 * @param tipo Tipo de notificación web
+	 * @throws BaseException Excepción base
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
 	private void crearNotificacionWebCamposComunes(NotificacionWeb notificacionWeb, 
 	                                               String texto,
 												   String fechaInicio, String horaInicio,
 												   String fechaFin,    String horaFin,
-												   String receptor,    String tipo) throws NotificationsServerException
+												   String receptor,    String tipo) throws BaseException, NotificationsServerException
 	{
 		// Seteamos la fecha de creación
 		notificacionWeb.setFechaCreacion(new Date());
@@ -530,8 +577,8 @@ public class NotificationesWebController
 		notificacionWeb.setTipo(tipo.toUpperCase());
 
 		// Convertimos las fechas a Date
-		Date fechaInicioDate = this.convertirFecha(fechaInicio);
-		Date fechaFinDate    = this.convertirFecha(fechaFin);
+		Date fechaInicioDate = FechasUtils.convertirFecha(fechaInicio);
+		Date fechaFinDate    = FechasUtils.convertirFecha(fechaFin);
 
 		// Validamos si la fecha de fin es anterior a la fecha de inicio
 		if (fechaFinDate.before(fechaInicioDate))
@@ -543,8 +590,8 @@ public class NotificationesWebController
 		}
 
 		// Convertimos la hora a LocalTime
-		LocalTime horaInicioLocalTime = this.convertirHora(horaInicio);
-		LocalTime horaFinLocalTime    = this.convertirHora(horaFin);
+		LocalTime horaInicioLocalTime = FechasUtils.convertirHora(horaInicio);
+		LocalTime horaFinLocalTime    = FechasUtils.convertirHora(horaFin);
 
 		// Seteamos la fecha y hora de inicio
 		notificacionWeb.setFechaInicio(fechaInicioDate);
@@ -556,46 +603,6 @@ public class NotificationesWebController
 		
 		// Seteamos el receptor
 		notificacionWeb.setReceptor(receptor);
-	}
-
-	/**
-	 * Método auxiliar para convertir una fecha a Date
-	 * @param fecha Fecha
-	 * @return Date
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private Date convertirFecha(String fecha) throws NotificationsServerException
-	{
-		try
-		{
-			return new SimpleDateFormat("dd/MM/yyyy").parse(fecha);
-		}
-		catch (ParseException parseException)
-		{
-			String errorMessage = "Error al convertir la fecha: " + fecha;
-			log.error(errorMessage, parseException);
-			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage, parseException);
-		}
-	}
-
-	/**
-	 * Método auxiliar para convertir una hora a LocalTime
-	 * @param hora Hora
-	 * @return LocalTime
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private LocalTime convertirHora(String hora) throws NotificationsServerException
-	{
-		try
-		{
-			return LocalTime.parse(hora);
-		}
-		catch (DateTimeParseException dateTimeParseException)
-		{
-			String errorMessage = "Error al convertir la hora: " + hora;
-			log.error(errorMessage, dateTimeParseException);
-			throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage, dateTimeParseException);
-		}
 	}
 
 	/**
@@ -650,21 +657,21 @@ public class NotificationesWebController
 		if (roles.contains(BaseConstants.ROLE_ADMINISTRADOR))
 		{
 			// Añadimos el receptor de notificación de administradores
-			receptores.add(Constants.RECEPTOR_NOTIFICACION_ADMINISTRADORES);
+			receptores.add(BaseClientConstants.RECEPTOR_NOTIFICACION_ADMINISTRADORES);
 		}
 
 		// Si el usuario es dirección...
 		if (roles.contains(BaseConstants.ROLE_DIRECCION))
 		{
 			// Añadimos el receptor de notificación de equipo directivo
-			receptores.add(Constants.RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO);
+			receptores.add(BaseClientConstants.RECEPTOR_NOTIFICACION_EQUIPO_DIRECTIVO);
 		}
 
 		// Si el usuario es profesor...
 		if (roles.contains(BaseConstants.ROLE_PROFESOR))
 		{
 			// Añadimos el receptor de notificación de claustro
-			receptores.add(Constants.RECEPTOR_NOTIFICACION_CLAUSTRO);
+			receptores.add(BaseClientConstants.RECEPTOR_NOTIFICACION_CLAUSTRO);
 		}
 
 		return receptores;

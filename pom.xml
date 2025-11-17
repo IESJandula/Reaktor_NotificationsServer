@@ -17,6 +17,12 @@
 		<!-- Utilidades comunes a todos los servidores -->
 		<dependency>
 			<groupId>es.iesjandula.reaktor</groupId>
+			<artifactId>BaseServer</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<!-- Utilidades comunes a todos los clientes -->
+		<dependency>
+			<groupId>es.iesjandula.reaktor</groupId>
 			<artifactId>BaseClient</artifactId>
 			<version>1.0.0</version>
 		</dependency>

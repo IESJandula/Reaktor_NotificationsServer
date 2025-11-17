@@ -52,7 +52,7 @@ import es.iesjandula.reaktor.notifications_server.repository.IAplicacionReposito
 @Slf4j
 @RestController
 @RequestMapping("/notifications/email")
-public class SendEmailController
+public class NotificacionesEmailController
 {
     /* Atributo - Credenciales de Gmail */
     @Autowired 
@@ -79,6 +79,10 @@ public class SendEmailController
 
     @Autowired
     private IAplicacionRepository aplicacionRepository;
+
+    /* Atributo - Nombre de la aplicación de Gmail */
+    @Value("${reaktor.gmail.appName}")
+    private String gmailAppName ;
 
     /* Atributo - Remitente del email */
     @Value("${reaktor.gmail.from}")
@@ -368,7 +372,7 @@ public class SendEmailController
 
             // Creo el servicio de Gmail
             return new Gmail.Builder(httpTransport, GsonFactory.getDefaultInstance(), this.gmailCredentials)
-                            .setApplicationName(Constants.GMAIL_APPLICATION_NAME)
+                            .setApplicationName(this.gmailAppName)
                             .build() ;
         }
         catch (Exception exception)

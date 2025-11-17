@@ -21,30 +21,6 @@ public abstract class Actor
     @Column
     private String roles ;
 
-    /** Fecha de la última notificación - Calendar */
-    @Column
-    private LocalDateTime fechaUltimaNotificacionCalendar ;
-    
-    /** Atributo - Notificaciones de hoy de calendario */
-    @Column 
-    private Integer notifHoyCalendar ;
-    
-    /** Atributo - Notificaciones máximas de calendario */
-    @Column
-    private Integer notifMaxCalendar ;
-
-    /** Fecha de la última notificación - Email */
-    @Column
-    private LocalDateTime fechaUltimaNotificacionEmail ;
-    
-    /** Atributo - Notificaciones de hoy de email */
-    @Column
-    private Integer notifHoyEmail ;
-    
-    /** Atributo - Notificaciones máximas de email */
-    @Column
-    private Integer notifMaxEmail ;
-
     /** Fecha de la última notificación - Web */
     @Column
     private LocalDateTime fechaUltimaNotificacionWeb ;

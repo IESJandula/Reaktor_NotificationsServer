@@ -12,10 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "constantes_notificaciones")
-public class ConstantesNotificaciones 
+@Table(name = "constante")
+public class Constante 
 {
-	
 	/** Clave única que identifica la constante */
 	@Id
 	private String clave ; 

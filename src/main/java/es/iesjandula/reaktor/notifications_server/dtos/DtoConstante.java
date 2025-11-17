@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DtoConstantes 
+public class DtoConstante 
 {
 
 	/** Clave identificadora de la constante */

@@ -11,22 +11,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.notifications_server.dtos.DtoConstantes;
-import es.iesjandula.reaktor.notifications_server.models.ConstantesNotificaciones;
-import es.iesjandula.reaktor.notifications_server.repository.ConstantesRepository;
+import es.iesjandula.reaktor.notifications_server.dtos.DtoConstante;
+import es.iesjandula.reaktor.notifications_server.models.Constante;
+import es.iesjandula.reaktor.notifications_server.repository.IConstanteRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import lombok.extern.log4j.Log4j2;
 
-@RequestMapping(value = "/notifications/constants", produces =
-{ "application/json" })
+@RequestMapping(value = "/notifications/constants")
 @RestController
 @Log4j2
 public class ConstantesController 
 {
-
 	@Autowired
-	private ConstantesRepository constanteRepository;
+	private IConstanteRepository constanteRepository;
 
 	@PreAuthorize("hasAnyRole('" + BaseConstants.ROLE_ADMINISTRADOR + "', '" + BaseConstants.ROLE_DIRECCION + "')")
 	@RequestMapping(method = RequestMethod.GET)
@@ -34,30 +32,31 @@ public class ConstantesController
 	{
 		try
 		{
-			List<DtoConstantes> dtoConstantesList = this.constanteRepository.encontrarTodoComoDto();
+			List<DtoConstante> dtoConstanteList = this.constanteRepository.encontrarTodoComoDto();
 
-			return ResponseEntity.ok(dtoConstantesList);
+			return ResponseEntity.ok(dtoConstanteList);
 		}
 		catch (Exception exception)
 		{
 
-			NotificationsServerException notificationsServerException = new NotificationsServerException(Constants.CONSTANTE_NO_ENCONTRADA,
-					"Excepción genérica al obtener las costantes", exception);
+			NotificationsServerException notificationsServerException = 
+			        new NotificationsServerException(Constants.ERR_CONSTANTE_NO_ENCONTRADA,
+											"Excepción genérica al obtener las constantes", exception);
 
-			log.error("Excepción genérica al obtener las costantes", notificationsServerException);
+			log.error("Excepción genérica al obtener las constantes", notificationsServerException);
 			return ResponseEntity.status(500).body(notificationsServerException.getBodyExceptionMessage());
 		}
 	}
 
 	@PreAuthorize("hasAnyRole('" + BaseConstants.ROLE_ADMINISTRADOR + "', '" + BaseConstants.ROLE_DIRECCION + "')")
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<?> actualizarConstantes(@RequestBody(required = true) List<DtoConstantes> dtoConstantesList)
+	public ResponseEntity<?> actualizarConstantes(@RequestBody(required = true) List<DtoConstante> dtoConstanteList)
 	{
 		try
 		{
-			for (DtoConstantes dtoConstantes : dtoConstantesList)
+			for (DtoConstante dtoConstante : dtoConstanteList)
 			{
-				ConstantesNotificaciones constantes = new ConstantesNotificaciones(dtoConstantes.getClave(), dtoConstantes.getValor());
+				Constante constantes = new Constante(dtoConstante.getClave(), dtoConstante.getValor());
 
 				this.constanteRepository.saveAndFlush(constantes);
 			}
@@ -66,10 +65,11 @@ public class ConstantesController
 		}
 		catch (Exception exception)
 		{
-			NotificationsServerException notificationsServerException = new NotificationsServerException(Constants.CONSTANTE_NO_ENCONTRADA,
-					"Excepción genérica al obtener las costantes", exception);
+			NotificationsServerException notificationsServerException = 
+					new NotificationsServerException(Constants.ERR_CONSTANTE_NO_ENCONTRADA,
+											"Excepción genérica al actualizar las constantes", exception);
 
-			log.error("Excepción genérica al actualizar las costantes");
+			log.error("Excepción genérica al actualizar las constantes", notificationsServerException);
 			return ResponseEntity.status(500).body(notificationsServerException.getBodyExceptionMessage());
 		}
 	}

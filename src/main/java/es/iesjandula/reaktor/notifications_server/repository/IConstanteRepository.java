@@ -7,11 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import es.iesjandula.reaktor.notifications_server.dtos.DtoConstantes;
-import es.iesjandula.reaktor.notifications_server.models.ConstantesNotificaciones;
+import es.iesjandula.reaktor.notifications_server.dtos.DtoConstante;
+import es.iesjandula.reaktor.notifications_server.models.Constante;
 
 @Repository
-public interface ConstantesRepository extends JpaRepository<ConstantesNotificaciones, String>
+public interface IConstanteRepository extends JpaRepository<Constante, String>
 {
 
 	/**
@@ -20,14 +20,13 @@ public interface ConstantesRepository extends JpaRepository<ConstantesNotificaci
 	 * @param clave la clave de la constante que quieres encontrar
 	 * @return un Optional con la constante si existe
 	 */
-	Optional<ConstantesNotificaciones> findByClave(String clave);
+	Optional<Constante> findByClave(String clave);
 	
 	/**
      * Obtiene todas las constantes como lista de objetos DTO.
      * 
      * @return lista de constantes en formato DtoConstantesNotificaciones
      */
-    @Query("SELECT new es.iesjandula.reaktor.notifications_server.dtos.DtoConstantesNotificaciones(c.clave, c.valor) FROM ConstantesNotificaciones c")
-    List<DtoConstantes> encontrarTodoComoDto();
-	
+    @Query("SELECT new es.iesjandula.reaktor.notifications_server.dtos.DtoConstante(c.clave, c.valor) FROM Constante c")
+    List<DtoConstante> encontrarTodoComoDto();
 }

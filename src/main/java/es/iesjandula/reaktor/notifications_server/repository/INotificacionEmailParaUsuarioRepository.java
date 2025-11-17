@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailParaUsuario;
 
-public interface INotificacionesEmailParaUsuarioRepository extends JpaRepository<NotificacionEmailParaUsuario, Long>
+public interface INotificacionEmailParaUsuarioRepository extends JpaRepository<NotificacionEmailParaUsuario, Long>
 {
 
 }
