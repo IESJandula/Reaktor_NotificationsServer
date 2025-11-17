@@ -10,11 +10,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.base.security.models.DtoAplicacion;
+
 import es.iesjandula.reaktor.base_client.dtos.NotificationEmailDto;
+
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
-import es.iesjandula.reaktor.base_client.security.models.DtoAplicacion;
-import es.iesjandula.reaktor.base_client.utils.BaseConstants;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
@@ -40,7 +42,12 @@ import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.Not
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailCopiaOcultaUsuario;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailCopiaUsuario;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailParaUsuario;
-import es.iesjandula.reaktor.notifications_server.repository.*;
+import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailCopiaOcultaUsuarioRepository;
+import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailCopiaUsuarioRepository;
+import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailParaUsuarioRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
+import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailAplicacionRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
 
 @Slf4j
 @RestController
@@ -53,15 +60,15 @@ public class SendEmailController
     
     /* Atributo - Repositorio de notificaciones de emails para usuarios */
     @Autowired 
-    private INotificacionesEmailParaUsuarioRepository paraUsuarioRepository;
+    private INotificacionEmailParaUsuarioRepository notificacionEmailParaUsuarioRepository;
     
     /* Atributo - Repositorio de notificaciones de emails de copias de usuarios */
     @Autowired 
-    private INotificacionesEmailCopiaUsuarioRepository copiaUsuarioRepository;
+    private INotificacionEmailCopiaUsuarioRepository notificacionEmailCopiaUsuarioRepository;
     
     /* Atributo - Repositorio de notificaciones de emails de copias ocultas de usuarios */
     @Autowired 
-    private INotificacionesEmailCopiaOcultaUsuarioRepository copiaOcultaUsuarioRepository;
+    private INotificacionEmailCopiaOcultaUsuarioRepository notificacionEmailCopiaOcultaUsuarioRepository;
     
     /* Atributo - Repositorio de usuarios */
     @Autowired 
@@ -81,15 +88,15 @@ public class SendEmailController
     @RequestMapping(method = RequestMethod.POST, value = "/send")
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
     public ResponseEntity<?> crearNotificacionEmail(@AuthenticationPrincipal DtoAplicacion aplicacion,
-                                                    @RequestBody EmailRequestDto emailRequestDto)
+                                                    @RequestBody NotificationEmailDto notificationEmailDto)
     {
         try
         {
             // Primero creamos los objetos en BBDD (notificación asociada a la aplicación que la envía)
-            NotificacionEmailAplicacion notificacionEmailAplicacion = this.crearNotificacionEmailBBDD(aplicacion, emailRequestDto);
+            NotificacionEmailAplicacion notificacionEmailAplicacion = this.crearNotificacionEmailBBDD(aplicacion, notificationEmailDto);
 
             // Enviar el correo a través de Gmail API
-            this.enviarCorreoGmailAPI(emailRequestDto);
+            this.enviarCorreoGmailAPI(notificationEmailDto);
 
             // Actualizamos el indicador de envío de la notificación de email
             notificacionEmailAplicacion.setEnviado(true);
@@ -122,11 +129,11 @@ public class SendEmailController
      * Método - Crear notificación de email en BBDD (para aplicación emisora)
      *
      * @param dtoAplicacion - La aplicación emisora
-     * @param emailRequestDto - DTO de la petición de email
+     * @param notificationEmailDto - DTO de la petición de email
      * @return NotificacionEmailAplicacion - La notificación de email creada
      * @throws NotificationsServerException - Si hay un error al crear la notificación de email en la base de datos
      */
-    private NotificacionEmailAplicacion crearNotificacionEmailBBDD(DtoAplicacion dtoAplicacion, EmailRequestDto emailRequestDto) throws NotificationsServerException
+    private NotificacionEmailAplicacion crearNotificacionEmailBBDD(DtoAplicacion dtoAplicacion, NotificationEmailDto notificationEmailDto) throws NotificationsServerException
     {
         try
         {
@@ -145,8 +152,8 @@ public class SendEmailController
             notificacionAplicacion.setAplicacion(aplicacion);
 
             // Asignar asunto, contenido y fecha de creación
-            notificacionAplicacion.setAsunto(emailRequestDto.getSubject());
-            notificacionAplicacion.setContenido(emailRequestDto.getBody());
+            notificacionAplicacion.setAsunto(notificationEmailDto.getSubject());
+            notificacionAplicacion.setContenido(notificationEmailDto.getBody());
             notificacionAplicacion.setFechaCreacion(new Date());
 
             // Guardar la notificación principal
@@ -155,9 +162,9 @@ public class SendEmailController
             // ==========================================================
             // 3️⃣ Guardar los destinatarios del email (TO)
             // ==========================================================
-            if (emailRequestDto.getTo() != null)
+            if (notificationEmailDto.getTo() != null)
             {
-                for (String correo : emailRequestDto.getTo())
+                for (String correo : notificationEmailDto.getTo())
                 {
                     Usuario usuarioPara = this.obtenerUsuarioPorEmail(correo);
 
@@ -165,16 +172,16 @@ public class SendEmailController
                     notificacionPara.setUsuario(usuarioPara);
                     notificacionPara.setNotificacionEmailAplicacion(notificacionEmailAplicacion);
 
-                    this.paraUsuarioRepository.save(notificacionPara);
+                    this.notificacionEmailParaUsuarioRepository.save(notificacionPara);
                 }
             }
 
             // ==========================================================
             // 4️⃣ Guardar los destinatarios en copia (CC)
             // ==========================================================
-            if (emailRequestDto.getCc() != null)
+            if (notificationEmailDto.getCc() != null)
             {
-                for (String correo : emailRequestDto.getCc())
+                for (String correo : notificationEmailDto.getCc())
                 {
                     Usuario usuarioCopia = this.obtenerUsuarioPorEmail(correo);
 
@@ -182,16 +189,16 @@ public class SendEmailController
                     notificacionCopia.setUsuario(usuarioCopia);
                     notificacionCopia.setNotificacionEmailAplicacion(notificacionEmailAplicacion);
 
-                    this.copiaUsuarioRepository.save(notificacionCopia);
+                    this.notificacionEmailCopiaUsuarioRepository.save(notificacionCopia);
                 }
             }
 
             // ==========================================================
             // 5️⃣ Guardar los destinatarios en copia oculta (BCC)
             // ==========================================================
-            if (emailRequestDto.getBcc() != null)
+            if (notificationEmailDto.getBcc() != null)
             {
-                for (String correo : emailRequestDto.getBcc())
+                for (String correo : notificationEmailDto.getBcc())
                 {
                     Usuario usuarioCopiaOculta = this.obtenerUsuarioPorEmail(correo);
 
@@ -199,7 +206,7 @@ public class SendEmailController
                     notificacionCopiaOculta.setUsuario(usuarioCopiaOculta);
                     notificacionCopiaOculta.setNotificacionEmailAplicacion(notificacionEmailAplicacion);
 
-                    this.copiaOcultaUsuarioRepository.save(notificacionCopiaOculta);
+                    this.notificacionEmailCopiaOcultaUsuarioRepository.save(notificacionCopiaOculta);
                 }
             }
 
@@ -300,10 +307,10 @@ public class SendEmailController
     /**
      * Método - Enviar correo a través de Gmail API
      *
-     * @param emailRequestDto - La petición de email a enviar
+     * @param notificationEmailDto - La petición de email a enviar
      * @throws NotificationsServerException - Si hay un error al enviar el correo electrónico
      */
-    private void enviarCorreoGmailAPI(EmailRequestDto emailRequestDto) throws NotificationsServerException
+    private void enviarCorreoGmailAPI(NotificationEmailDto notificationEmailDto) throws NotificationsServerException
     {
         try
         {
@@ -314,13 +321,13 @@ public class SendEmailController
             MimeMessage email = this.enviarCorreoGmailAPICrearMensajeEmail();
 
             // Añado el remitente, subject y contenido del email
-            this.enviarCorreoGmailAPIConfigurarRemitenteSubjectContenido(email, emailRequestDto);
+            this.enviarCorreoGmailAPIConfigurarRemitenteSubjectContenido(email, notificationEmailDto);
 
             // Configuro los destinatarios del email
-            this.enviarCorreoGmailAPIConfigurarDestinatarios(email, emailRequestDto);
+            this.enviarCorreoGmailAPIConfigurarDestinatarios(email, notificationEmailDto);
 
             // Configuro el envío del email y obtengo el mensaje final a enviar
-            Message message = this.enviarCorreoGmailAPIConfigurarEnvio(email, emailRequestDto);
+            Message message = this.enviarCorreoGmailAPIConfigurarEnvio(email, notificationEmailDto);
 
             // Envío el email mediante Gmail API
             service.users().messages().send("me", message).execute();
@@ -346,7 +353,8 @@ public class SendEmailController
     }
 
 
-    /** Método - Crear servicio de Gmail
+    /** 
+     * Método - Crear servicio de Gmail
      *
      * @return Gmail - El servicio de Gmail creado
      * @throws NotificationsServerException - Si hay un error al crear el servicio de Gmail
@@ -391,10 +399,10 @@ public class SendEmailController
     /** Método - Configurar remitente, subject y contenido del email
      *
      * @param email - El mensaje de email a configurar
-     * @param emailRequestDto - La petición de email a configurar
+     * @param notificationEmailDto - La petición de email a configurar
      * @throws NotificationsServerException - Si hay un error al configurar el remitente, subject y contenido del email
      */
-    private void enviarCorreoGmailAPIConfigurarRemitenteSubjectContenido(MimeMessage email, EmailRequestDto emailRequestDto) throws NotificationsServerException
+    private void enviarCorreoGmailAPIConfigurarRemitenteSubjectContenido(MimeMessage email, NotificationEmailDto notificationEmailDto) throws NotificationsServerException
     {
         try
         {
@@ -402,8 +410,8 @@ public class SendEmailController
             email.setFrom(new InternetAddress(this.from));
 
             // Añado el asunto y el cuerpo del email
-            email.setSubject(emailRequestDto.getSubject());
-            email.setText(emailRequestDto.getBody());
+            email.setSubject(notificationEmailDto.getSubject());
+            email.setText(notificationEmailDto.getBody());
         }
         catch (Exception exception)
         {
@@ -416,35 +424,35 @@ public class SendEmailController
     /** Método - Configurar destinatarios del email
      *
      * @param email - El mensaje de email a configurar
-     * @param emailRequestDto - La petición de email a configurar
+     * @param notificationEmailDto - La petición de email a configurar
      * @throws NotificationsServerException - Si hay un error al configurar los destinatarios del email
      */
-    private void enviarCorreoGmailAPIConfigurarDestinatarios(MimeMessage email, EmailRequestDto emailRequestDto) throws NotificationsServerException
+    private void enviarCorreoGmailAPIConfigurarDestinatarios(MimeMessage email, NotificationEmailDto notificationEmailDto) throws NotificationsServerException
     {
         try
         {
             // Añado los destinatarios del email
-            if (emailRequestDto.getTo() != null)
+            if (notificationEmailDto.getTo() != null)
             {
-                for (String recipient : emailRequestDto.getTo())
+                for (String recipient : notificationEmailDto.getTo())
                 {
                     email.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                 }
             }
 
             // Añado los copias del email
-            if (emailRequestDto.getCc() != null)
+            if (notificationEmailDto.getCc() != null)
             {
-                for (String recipient : emailRequestDto.getCc())
+                for (String recipient : notificationEmailDto.getCc())
                 {
                     email.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipient));
                 }
             }
 
             // Añado los copias ocultas del email
-            if (emailRequestDto.getBcc() != null)
+            if (notificationEmailDto.getBcc() != null)
             {
-                for (String recipient : emailRequestDto.getBcc())
+                for (String recipient : notificationEmailDto.getBcc())
                 {
                     email.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipient));
                 }
@@ -461,11 +469,11 @@ public class SendEmailController
     /** Método - Configurar envío del email
      *
      * @param email - El mensaje de email a configurar
-     * @param emailRequestDto - La petición de email a configurar
+     * @param notificationEmailDto - La petición de email a configurar
      * @return Message - El mensaje de email configurado
      * @throws NotificationsServerException - Si hay un error al configurar el envío del email
      */
-    private Message enviarCorreoGmailAPIConfigurarEnvio(MimeMessage email, EmailRequestDto emailRequestDto) throws NotificationsServerException
+    private Message enviarCorreoGmailAPIConfigurarEnvio(MimeMessage email, NotificationEmailDto notificationEmailDto) throws NotificationsServerException
     {
         try
         {

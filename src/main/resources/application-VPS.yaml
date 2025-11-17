@@ -21,8 +21,14 @@ logging:
 reaktor:
   publicKeyFile: ${PUBLIC_KEY_FILE}
   urlCors: https://somos.iesjandula.es
-  notifications:
-    max:
-      calendar: 10
-      email: 10
-      web: 10
+  firebase_server_url: https://api.iesjandula.es/
+  notifications_server_url: https://api.iesjandula.es/
+  clientId: notifications
+  constantes:
+    notificationsMaxCalendar: 10
+    notificationsMaxEmail: 10
+    notificationsMaxWeb: 10
+  http_connection_timeout: 30000
+  gmail:
+    from: ${GMAIL_EMAIL_FROM}
+    oauthCredentialsFile: ${GMAIL_OAUTH_CREDENTIALS_FILE}

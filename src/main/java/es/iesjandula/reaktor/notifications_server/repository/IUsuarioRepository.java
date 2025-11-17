@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.notifications_server.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,6 +19,8 @@ import es.iesjandula.reaktor.notifications_server.models.Usuario;
 @Repository
 public interface IUsuarioRepository extends JpaRepository<Usuario, String>
 {
+	Optional<Usuario> findByEmail(String email);
+	
 	@Query("SELECT new es.iesjandula.reaktor.base.security.models.DtoUsuarioBase(u.email, u.nombre, u.apellidos, u.departamento) "   +
 		   "FROM Usuario u")
 	List<DtoUsuarioBase> obtenerInfoUsuarios() ;

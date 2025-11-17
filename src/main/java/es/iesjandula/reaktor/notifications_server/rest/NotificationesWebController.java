@@ -56,13 +56,13 @@ public class NotificationesWebController
 	@Autowired
 	private INotificacionWebAplicacionRepository notificacionWebAplicacionRepository ;
 
-	@Value("${" + Constants.REAKTOR_NOTIFICATIONES_MAX_CALENDAR + "}")
+	@Value("${" + Constants.NOTIFICATIONS_MAX_CALENDAR + "}")
 	private int notifMaxCalendar ;
 
-	@Value("${" + Constants.REAKTOR_NOTIFICATIONES_MAX_EMAIL + "}")
+	@Value("${" + Constants.NOTIFICATIONS_MAX_EMAIL + "}")
 	private int notifMaxEmail ;
 
-	@Value("${" + Constants.REAKTOR_NOTIFICATIONS_MAX_WEB + "}")
+	@Value("${" + Constants.NOTIFICATIONS_MAX_WEB + "}")
 	private int notifMaxWeb ;
 
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")

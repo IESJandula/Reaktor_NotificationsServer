@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.notifications_server.models.notificacion_emails.usuario;
+package es.iesjandula.reaktor.notifications_server.models.notificacion_emails;
 
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import jakarta.persistence.Entity;
@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Data
-@Table(name = "notificacion_email_copia_usuario")
+@Table(name = "notificacion_email_copia_oculta_usuario")
 @AllArgsConstructor
 @NoArgsConstructor
-public class NotificacionEmailCopiaUsuario 
+public class NotificacionEmailCopiaOcultaUsuario 
 {
 	/** Atributo - Id */
 	@Id
@@ -24,7 +24,7 @@ public class NotificacionEmailCopiaUsuario
 	private Long id ;
 
     @ManyToOne
-    private NotificacionEmailUsuario notificacionEmailUsuario;
+    private NotificacionEmailAplicacion notificacionEmailAplicacion;
 
 	@ManyToOne
 	private Usuario usuario;
