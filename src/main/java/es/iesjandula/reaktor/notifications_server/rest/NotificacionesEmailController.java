@@ -55,7 +55,7 @@ import es.iesjandula.reaktor.notifications_server.repository.IAplicacionReposito
 public class NotificacionesEmailController
 {
     /* Atributo - Credenciales de Gmail */
-    @Autowired 
+    @Autowired
     private Credential gmailCredentials;
     
     /* Atributo - Repositorio de notificaciones de emails para usuarios */
@@ -367,6 +367,16 @@ public class NotificacionesEmailController
     {
         try
         { 
+            // Verificar que las credenciales estén disponibles
+            if (this.gmailCredentials == null)
+            {
+                String errorMessage = "Las credenciales de Gmail no están configuradas. " +
+                                      "Por favor, configure el token de autorización en la carpeta 'tokens'.";
+
+                log.error(errorMessage);
+                throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage);
+            }
+            
             // Creo el servicio de Gmail
             NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 

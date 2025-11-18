@@ -1,6 +1,8 @@
 package es.iesjandula.reaktor.notifications_server.utils;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Francisco Manuel Benítez Chico
@@ -84,5 +86,19 @@ public class Constants
 	
 	/** Crono - Felicitacion */
 	public static final String CRON_FELICITACION = "0 0 0 * * *";
+
+
+	/*********************************************************/
+	/******************* Google ******************************/
+	/*********************************************************/
+
+	/** Google - Directorio de tokens */
+	public static final String GOOGLE_TOKEN_DIRECTORY_PATH = NOTIFICATIONS_SERVER_CONFIG_EXEC + File.separator + "tokens";
+
+	/** Google - ID del usuario */
+	public static final String GOOGLE_USER_ID = "user";
+
+	/** Google - Scopes */
+	public static final List<String> GOOGLE_SCOPES = Collections.singletonList("https://www.googleapis.com/auth/gmail.send");
 
 }
