@@ -11,7 +11,7 @@ server:
   port: 8088
 logging:
     level:
-        root: DEBUG
+        root: info
     file:
         name: /tmp/reaktor_notificationsserver.log
         max-size: 1MB
