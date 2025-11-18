@@ -55,7 +55,7 @@ import es.iesjandula.reaktor.notifications_server.repository.IAplicacionReposito
 public class NotificacionesEmailController
 {
     /* Atributo - Credenciales de Gmail */
-    @Autowired
+    @Autowired(required = false)
     private Credential gmailCredentials;
     
     /* Atributo - Repositorio de notificaciones de emails para usuarios */
