@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
+@RequestMapping("/notifications/gmail")
 public class GmailOAuthController
 {
     @Autowired
@@ -41,7 +42,7 @@ public class GmailOAuthController
      * Ejemplo: GET https://tu-dominio/gmail/authorize
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_ADMINISTRADOR + "')")
-    @RequestMapping(value = "/gmail/authorize", method = RequestMethod.GET)
+    @RequestMapping(value = "/authorize", method = RequestMethod.GET)
     public RedirectView authorize()
     {
         String authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(this.oauthRedirectUri).build();
@@ -59,7 +60,7 @@ public class GmailOAuthController
      * @throws NotificationsServerException - Excepción de servidor de notificaciones
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_ADMINISTRADOR + "')")
-    @RequestMapping(value = "/gmail/oauth2callback", method = RequestMethod.GET)
+    @RequestMapping(value = "/oauth2callback", method = RequestMethod.GET)
     public RedirectView oauth2callback(@RequestParam(value = "code", required = false) String code, 
                                        @RequestParam(value = "error", required = false) String error) throws IOException
     {
