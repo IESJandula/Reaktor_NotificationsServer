@@ -109,12 +109,10 @@ public class GmailOAuthConfig
                                  "Una vez completado, reinicia (o vuelve a llamar) para que se carguen las credenciales.";
 
             log.error(errorString);
-            throw new IOException(errorString);
         }
-
-        try
+        else 
         {
-			// Si hay token y está cerca de expirar, intentamos refrescarlo
+            // Si hay token y está cerca de expirar, intentamos refrescarlo
             if (credential.getExpiresInSeconds() != null && credential.getExpiresInSeconds() < 60 && credential.getRefreshToken() != null)
             {
                 boolean refreshed = credential.refreshToken();
@@ -126,13 +124,6 @@ public class GmailOAuthConfig
                     throw new IOException(errorString);
                 }
             }
-        }
-        catch (IOException ioException)
-        {
-            String errorString = "Error al refrescar el token de Gmail: " + ioException.getMessage();
-
-            log.error(errorString, ioException);
-            throw ioException;
         }
 
         return credential ;
