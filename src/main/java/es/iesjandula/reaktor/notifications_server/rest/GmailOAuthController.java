@@ -2,8 +2,12 @@ package es.iesjandula.reaktor.notifications_server.rest;
 
 import java.io.IOException;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,16 +43,29 @@ public class GmailOAuthController
     /**
      * Paso 1: redirige a Google para pedir consentimiento.
      * 
+     * Si la petición incluye el header "Accept: application/json", devuelve la URL en JSON.
+     * Si no, redirige directamente a Google (comportamiento original).
+     * 
      * Ejemplo: GET https://tu-dominio/gmail/authorize
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_ADMINISTRADOR + "')")
     @RequestMapping(value = "/authorize", method = RequestMethod.GET)
-    public RedirectView authorize()
+    public Object authorize(HttpServletRequest request)
     {
         String authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(this.oauthRedirectUri).build();
 
-        log.info("Iniciando autorización de Gmail. Redirigiendo a: {}", authorizationUrl);
+        log.info("Iniciando autorización de Gmail. URL: {}", authorizationUrl);
 
+        // Si la petición solicita JSON, devolvemos la URL en JSON
+        String acceptHeader = request.getHeader("Accept");
+        if (acceptHeader != null && acceptHeader.contains(MediaType.APPLICATION_JSON_VALUE))
+        {
+            java.util.Map<String, String> response = new java.util.HashMap<>();
+            response.put("authorizationUrl", authorizationUrl);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
+        }
+
+        // Si no, redirigimos directamente (comportamiento original)
         return new RedirectView(authorizationUrl);
     }
 
