@@ -1,5 +1,5 @@
 spring:
-  jpa.hibernate.ddl-auto: create
+  jpa.hibernate.ddl-auto: update
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_notificationsserver?createDatabaseIfNotExist=true
     username: root
@@ -11,7 +11,7 @@ server:
   port: 8088
 logging:
     level:
-        root: INFO
+        root: DEBUG
     file:
         name: /tmp/reaktor_notificationsserver.log
         max-size: 1MB
