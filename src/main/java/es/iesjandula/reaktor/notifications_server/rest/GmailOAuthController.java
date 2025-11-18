@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -14,6 +15,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 
+import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,7 @@ public class GmailOAuthController
      * 
      * Ejemplo: GET https://tu-dominio/gmail/authorize
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_ADMINISTRADOR + "')")
     @RequestMapping(value = "/gmail/authorize", method = RequestMethod.GET)
     public RedirectView authorize()
     {
@@ -55,6 +58,7 @@ public class GmailOAuthController
      * @throws IOException - Excepción de entrada/salida
      * @throws NotificationsServerException - Excepción de servidor de notificaciones
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_ADMINISTRADOR + "')")
     @RequestMapping(value = "/gmail/oauth2callback", method = RequestMethod.GET)
     public RedirectView oauth2callback(@RequestParam(value = "code", required = false) String code, 
                                        @RequestParam(value = "error", required = false) String error) throws IOException
