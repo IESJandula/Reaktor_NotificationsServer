@@ -91,11 +91,10 @@ public class BirthdayScheduler
      */
     private boolean validarFechaDeCumpleaños(int mesActual, int diaActual, String fechaNacimiento)
     {
-        // Obtenemos la información de la fecha de nacimiento del usuario
-        LocalDate fechaNacimientoLocal = LocalDate.parse(fechaNacimiento);
-
-        int mesNacimiento = fechaNacimientoLocal.getMonthValue() ;
-        int diaNacimiento = fechaNacimientoLocal.getDayOfMonth() ;
+        // Hago un split de la fecha de nacimiento por "/" y obtengo el día y mes de nacimiento
+        String[] fechaNacimientoSplit = fechaNacimiento.split("/");
+        int diaNacimiento = Integer.parseInt(fechaNacimientoSplit[0]);
+        int mesNacimiento = Integer.parseInt(fechaNacimientoSplit[1]);
 
         // Si el mes y el día de nacimiento son iguales al mes y día actual, es cumpleaños
         return mesNacimiento == mesActual && diaNacimiento == diaActual;
