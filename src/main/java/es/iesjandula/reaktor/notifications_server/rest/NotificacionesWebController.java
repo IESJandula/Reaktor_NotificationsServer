@@ -44,7 +44,7 @@ import es.iesjandula.reaktor.base.utils.FechasUtils;
 @RestController
 @RequestMapping("/notifications/web")
 @Slf4j
-public class NotificationesWebController 
+public class NotificacionesWebController 
 {
 	@Autowired
 	private IAplicacionRepository aplicacionRepository ;
