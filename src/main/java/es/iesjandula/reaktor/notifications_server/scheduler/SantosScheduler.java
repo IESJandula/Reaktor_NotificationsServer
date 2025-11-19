@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import es.iesjandula.reaktor.base.utils.FechasUtils;
 import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
-import es.iesjandula.reaktor.base_client.requests.NotificationWebSender;
+import es.iesjandula.reaktor.base_client.requests.notificationes.RequestNotificacionesEnviarWeb;
 import es.iesjandula.reaktor.base_client.utils.BaseClientConstants;
 import es.iesjandula.reaktor.base_client.utils.BaseClientException;
 import es.iesjandula.reaktor.notifications_server.repository.ISantoralRepository;
@@ -27,7 +27,7 @@ public class SantosScheduler
     private ISantoralRepository santoralRepository;
 
     @Autowired
-    private NotificationWebSender notificationWebSender;
+    private RequestNotificacionesEnviarWeb requestNotificacionesEnviarWeb;
 
     @Scheduled(cron = Constants.CRON_FELICITACION, zone = "Europe/Madrid")
     public void felicitar()
@@ -103,6 +103,6 @@ public class SantosScheduler
         notificationWebDto.setTipo(BaseClientConstants.TIPO_NOTIFICACION_SOLO_TEXTO);
 
         // Lo notificamos por web
-        this.notificationWebSender.enviarNotificacionWeb(notificationWebDto);   
+        this.requestNotificacionesEnviarWeb.enviarNotificacionWeb(notificationWebDto);   
     }
 }

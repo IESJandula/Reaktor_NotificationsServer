@@ -1,16 +1,12 @@
 package es.iesjandula.reaktor.notifications_server.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 
 /**
@@ -19,14 +15,11 @@ import es.iesjandula.reaktor.notifications_server.models.Usuario;
 @Repository
 public interface IUsuarioRepository extends JpaRepository<Usuario, String>
 {
-	Optional<Usuario> findByEmail(String email);
-	
-	@Query("SELECT new es.iesjandula.reaktor.base.security.models.DtoUsuarioBase(u.email, u.nombre, u.apellidos, u.departamento) "   +
-		   "FROM Usuario u")
-	List<DtoUsuarioBase> obtenerInfoUsuarios() ;
-	
-	
-	@Query("SELECT new es.iesjandula.reaktor.base.security.models.DtoUsuarioBase(u.email, u.nombre, u.apellidos, u.departamento) "   +
-			   "FROM Usuario u where u.email = :email")
-	DtoUsuarioBase obtenerInfoUsuario(@Param("email") String email);
+    /**
+     * Busca un usuario por su email
+     * @param email el email del usuario
+     * @return el usuario encontrado
+     */
+    @Query("SELECT u FROM Usuario u WHERE u.email = :email")
+    Optional<Usuario> findByEmail(@Param("email") String email);
 }

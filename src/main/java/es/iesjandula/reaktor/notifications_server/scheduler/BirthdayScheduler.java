@@ -1,25 +1,23 @@
 package es.iesjandula.reaktor.notifications_server.scheduler;
 
-import java.util.Date;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import es.iesjandula.reaktor.notifications_server.models.Usuario;
-import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
+import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
 import es.iesjandula.reaktor.base.utils.FechasUtils;
 import es.iesjandula.reaktor.base_client.dtos.NotificationEmailDto;
-import es.iesjandula.reaktor.base_client.requests.NotificationEmailSender;
-import es.iesjandula.reaktor.base_client.requests.NotificationWebSender;
+import es.iesjandula.reaktor.base_client.requests.notificationes.RequestNotificacionesEnviarEmail;
+import es.iesjandula.reaktor.base_client.requests.notificationes.RequestNotificacionesEnviarWeb;
 import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
 import es.iesjandula.reaktor.base_client.utils.BaseClientException;
 import es.iesjandula.reaktor.base_client.utils.BaseClientConstants;
+import es.iesjandula.reaktor.base_client.requests.firebase.RequestFirebaseObtenerUsuarios;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -27,13 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 public class BirthdayScheduler 
 {
     @Autowired
-    private IUsuarioRepository usuarioRepository;
+    private RequestFirebaseObtenerUsuarios requestFirebaseObtenerUsuarios;
 
     @Autowired
-    private NotificationEmailSender notificationEmailSender;
+    private RequestNotificacionesEnviarEmail requestNotificacionesEnviarEmail;
 
     @Autowired
-    private NotificationWebSender notificationWebSender;
+    private RequestNotificacionesEnviarWeb requestNotificacionesEnviarWeb;
 
     @Scheduled(cron = Constants.CRON_FELICITACION, zone = "Europe/Madrid")
     public void felicitar()
@@ -48,16 +46,16 @@ public class BirthdayScheduler
             int anioActual = fechaActual.getYear() ;
     
             // Obtenemos la información de los usuarios
-            List<Usuario> usuarios = this.usuarioRepository.findAll();
+            List<DtoUsuarioBase> dtoUsuariosBase = this.requestFirebaseObtenerUsuarios.obtenerUsuarios();
     
             // Si hay usuarios, recorremos la lista y actualizamos el atributo greetings
-            if (!usuarios.isEmpty())
+            if (!dtoUsuariosBase.isEmpty())
             {
                 // Recorremos la lista de usuarios
-                for (Usuario usuario : usuarios) 
+                for (DtoUsuarioBase dtoUsuarioBase : dtoUsuariosBase) 
                 {
                     // Obtenemos la fecha de nacimiento del usuario
-                    Date fechaNacimiento = usuario.getFechaNacimiento();
+                    String fechaNacimiento = dtoUsuarioBase.getFechaNacimiento();
                     if (fechaNacimiento != null)
                     {
                         // Validar fecha de cumpleaños
@@ -65,20 +63,17 @@ public class BirthdayScheduler
 
                         if (hoyEsCumple)
                         {
-                            this.enviarNotificacionCumple(diaActual, mesActual, anioActual, usuario) ;
+                            this.enviarNotificacionCumple(diaActual, mesActual, anioActual, dtoUsuarioBase) ;
                         }
                     }
                 }
     
-                // Guardamos los usuarios actualizados
-                this.usuarioRepository.saveAll(usuarios);
-    
                 // Logueamos
-                log.info("Felicitaciones actualizadas correctamente");
+                log.info("Notificaciones de cumpleaños enviadas correctamente");
             }
             else
             {
-                log.info("No hay usuarios este día para felicitar");
+                log.info("No hay usuarios este día para enviar notificaciones de cumpleaños");
             }
         }
         catch (BaseClientException baseClientException)
@@ -94,10 +89,10 @@ public class BirthdayScheduler
      * @param fechaNacimiento - La fecha de nacimiento del usuario
      * @return boolean - true si es cumpleaños, false en caso contrario
      */
-    private boolean validarFechaDeCumpleaños(int mesActual, int diaActual, Date fechaNacimiento)
+    private boolean validarFechaDeCumpleaños(int mesActual, int diaActual, String fechaNacimiento)
     {
         // Obtenemos la información de la fecha de nacimiento del usuario
-        LocalDate fechaNacimientoLocal = fechaNacimiento.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate fechaNacimientoLocal = LocalDate.parse(fechaNacimiento);
 
         int mesNacimiento = fechaNacimientoLocal.getMonthValue() ;
         int diaNacimiento = fechaNacimientoLocal.getDayOfMonth() ;
@@ -111,24 +106,24 @@ public class BirthdayScheduler
      * @param diaActual - El día actual
      * @param mesActual - El mes actual
      * @param anioActual - El año actual
-     * @param usuario - El usuario que cumple años
+     * @param dtoUsuarioBase - El DTO del usuario que cumple años
      * @throws BaseClientException - Si hay un error al enviar la notificación
      */
-    private void enviarNotificacionCumple(int diaActual, int mesActual, int anioActual, Usuario usuario) throws BaseClientException
+    private void enviarNotificacionCumple(int diaActual, int mesActual, int anioActual, DtoUsuarioBase dtoUsuarioBase) throws BaseClientException
     {
         // Creamos el DTO de la notificación email
         NotificationEmailDto notificationEmailDto = new NotificationEmailDto();
 
         // Creamos el texto de cumpleaños
-        String textoCumple = "¡Muchas felicidades, " + usuario.getNombre() + " " + usuario.getApellidos() + " por tu cumple!";
+        String textoCumple = "¡Muchas felicidades, " + dtoUsuarioBase.getNombre() + " " + dtoUsuarioBase.getApellidos() + " por tu cumple!";
 
         // Seteamos los datos de la notificación email
-        notificationEmailDto.setTo(List.of(usuario.getEmail()));
+        notificationEmailDto.setTo(List.of(dtoUsuarioBase.getEmail()));
         notificationEmailDto.setSubject("Felicitaciones por tu cumple");
         notificationEmailDto.setBody(textoCumple);
 
         // Lo notificamos por correo
-        this.notificationEmailSender.enviarNotificacionEmail(notificationEmailDto);
+        this.requestNotificacionesEnviarEmail.enviarNotificacionEmail(notificationEmailDto);
 
         // Creamos el DTO de la notificación web
         NotificationWebDto notificationWebDto = new NotificationWebDto();
@@ -155,6 +150,6 @@ public class BirthdayScheduler
         notificationWebDto.setTipo(BaseClientConstants.TIPO_NOTIFICACION_SOLO_TEXTO);
 
         // Lo notificamos por web
-        this.notificationWebSender.enviarNotificacionWeb(notificationWebDto);   
+        this.requestNotificacionesEnviarWeb.enviarNotificacionWeb(notificationWebDto);   
     }
 }

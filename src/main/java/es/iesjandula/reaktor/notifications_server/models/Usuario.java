@@ -33,13 +33,5 @@ public class Usuario extends Actor
 	/** Atributo - Apellidos */
 	@Column
 	private String apellidos ;
-	
-	/** Atributo - Departamento */
-	@Column
-	private String departamento ;
-	
-	/** Atributo - Fecha de nacimiento */
-	@Column
-	private Date fechaNacimiento ;
 }
 

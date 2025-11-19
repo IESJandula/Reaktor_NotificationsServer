@@ -159,7 +159,6 @@ public class NotificationesWebController
 			usuarioDatabase.setEmail(usuario.getEmail());
 			usuarioDatabase.setNombre(usuario.getNombre());
 			usuarioDatabase.setApellidos(usuario.getApellidos());
-			usuarioDatabase.setDepartamento(usuario.getDepartamento());
 			usuarioDatabase.setRoles(String.join(",", usuario.getRoles()));
 
 			// Seteamos los campos comunes de la aplicación
