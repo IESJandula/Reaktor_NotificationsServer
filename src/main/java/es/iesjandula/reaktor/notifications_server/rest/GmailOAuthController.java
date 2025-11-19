@@ -26,7 +26,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
-import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
