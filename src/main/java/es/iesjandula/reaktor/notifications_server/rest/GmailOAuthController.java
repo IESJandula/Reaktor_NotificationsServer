@@ -88,12 +88,11 @@ public class GmailOAuthController
      * 
      * Google redirige aquí tras aceptar en la pantalla de consentimiento.
      * @throws IOException - Excepción de entrada/salida
-     * @throws NotificationsServerException - Excepción de servidor de notificaciones
      */
     @RequestMapping(value = "/oauth2callback", method = RequestMethod.GET)
     public RedirectView oauth2callback(@RequestParam(value = "code", required = false) String code,
                                        @RequestParam(value = "state", required = false) String state,
-                                       @RequestParam(value = "error", required = false) String error)
+                                       @RequestParam(value = "error", required = false) String error) throws IOException
     {
         if (error != null)
         {
