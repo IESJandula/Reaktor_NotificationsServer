@@ -1,6 +1,11 @@
 package es.iesjandula.reaktor.notifications_server.rest;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -40,6 +45,9 @@ public class GmailOAuthController
     @Value("${reaktor.gmail.postAuthRedirect:/}")
     private String postAuthRedirect;
 
+    // Estados válidos en memoria (solo habrá 1 casi siempre)
+    private final Set<String> estadosValidos = ConcurrentHashMap.newKeySet();
+
     /**
      * Paso 1: redirige a Google para pedir consentimiento.
      * 
@@ -52,20 +60,26 @@ public class GmailOAuthController
     @RequestMapping(value = "/authorize", method = RequestMethod.GET)
     public Object authorize(HttpServletRequest request)
     {
-        String authorizationUrl = flow.newAuthorizationUrl().setRedirectUri(this.oauthRedirectUri).build();
+        // Generamos un state aleatorio
+        String state = UUID.randomUUID().toString();
+        
+        this.estadosValidos.add(state);
+
+        String authorizationUrl = flow.newAuthorizationUrl()
+                                      .setRedirectUri(this.oauthRedirectUri)
+                                      .setState(state)
+                                      .build();
 
         log.info("Iniciando autorización de Gmail. URL: {}", authorizationUrl);
 
-        // Si la petición solicita JSON, devolvemos la URL en JSON
         String acceptHeader = request.getHeader("Accept");
         if (acceptHeader != null && acceptHeader.contains(MediaType.APPLICATION_JSON_VALUE))
         {
-            java.util.Map<String, String> response = new java.util.HashMap<>();
+            Map<String, String> response = new HashMap<>();
             response.put("authorizationUrl", authorizationUrl);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
         }
 
-        // Si no, redirigimos directamente (comportamiento original)
         return new RedirectView(authorizationUrl);
     }
 
@@ -76,16 +90,22 @@ public class GmailOAuthController
      * @throws IOException - Excepción de entrada/salida
      * @throws NotificationsServerException - Excepción de servidor de notificaciones
      */
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_ADMINISTRADOR + "')")
     @RequestMapping(value = "/oauth2callback", method = RequestMethod.GET)
-    public RedirectView oauth2callback(@RequestParam(value = "code", required = false) String code, 
-                                       @RequestParam(value = "error", required = false) String error) throws IOException
+    public RedirectView oauth2callback(@RequestParam(value = "code", required = false) String code,
+                                       @RequestParam(value = "state", required = false) String state,
+                                       @RequestParam(value = "error", required = false) String error)
     {
         if (error != null)
         {
             log.error("Error devuelto por Google en OAuth2: {}", error);
-            
             return new RedirectView(this.postAuthRedirect + "?gmail_oauth_error=" + error);
+        }
+
+        // 1) Validar state
+        if (state == null || !this.estadosValidos.remove(state))
+        {
+            log.error("State inválido o inexistente en callback de Gmail OAuth2: {}", state);
+            return new RedirectView(this.postAuthRedirect + "?gmail_oauth_error=invalid_state");
         }
 
         if (code == null)
@@ -96,10 +116,10 @@ public class GmailOAuthController
 
         log.info("Recibido código de autorización de Gmail. Intercambiando por tokens...");
 
-        // Intercambiamos el código por tokens y los guardamos en la DataStore (tokens/)
-        GoogleTokenResponse tokenResponse = flow.newTokenRequest(code).setRedirectUri(this.oauthRedirectUri).execute();
+        GoogleTokenResponse tokenResponse = flow.newTokenRequest(code)
+                                                .setRedirectUri(this.oauthRedirectUri)
+                                                .execute();
 
-        // Guardamos las credenciales en la DataStore (tokens/)
         Credential credential = flow.createAndStoreCredential(tokenResponse, Constants.GOOGLE_USER_ID);
 
         if (credential != null && credential.getAccessToken() != null)
@@ -111,7 +131,6 @@ public class GmailOAuthController
             log.warn("No se han podido almacenar correctamente las credenciales de Gmail.");
         }
 
-        // Redirigimos a donde tú quieras (por defecto "/")
-        return new RedirectView(postAuthRedirect + "?gmail_oauth_success=true");
+        return new RedirectView(this.postAuthRedirect + "?gmail_oauth_success=true");
     }
 }
