@@ -12,12 +12,12 @@ import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
 import es.iesjandula.reaktor.base.utils.FechasUtils;
 import es.iesjandula.reaktor.base_client.dtos.NotificationEmailDto;
-import es.iesjandula.reaktor.base_client.requests.notificationes.RequestNotificacionesEnviarEmail;
-import es.iesjandula.reaktor.base_client.requests.notificationes.RequestNotificacionesEnviarWeb;
 import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
 import es.iesjandula.reaktor.base_client.utils.BaseClientException;
 import es.iesjandula.reaktor.base_client.utils.BaseClientConstants;
 import es.iesjandula.reaktor.base_client.requests.firebase.RequestFirebaseObtenerUsuarios;
+import es.iesjandula.reaktor.base_client.requests.notificaciones.RequestNotificacionesEnviarEmail;
+import es.iesjandula.reaktor.base_client.requests.notificaciones.RequestNotificacionesEnviarWeb;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -56,7 +56,7 @@ public class BirthdayScheduler
                 {
                     // Obtenemos la fecha de nacimiento del usuario
                     String fechaNacimiento = dtoUsuarioBase.getFechaNacimiento();
-                    if (fechaNacimiento != null)
+                    if (fechaNacimiento != null && !fechaNacimiento.isEmpty())
                     {
                         // Validar fecha de cumpleaños
                         boolean hoyEsCumple = this.validarFechaDeCumpleaños(mesActual, diaActual, fechaNacimiento) ;
