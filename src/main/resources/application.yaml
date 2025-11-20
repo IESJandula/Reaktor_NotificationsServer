@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: LOCAL
   jpa.hibernate.ddl-auto: update
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_notificationsserver?createDatabaseIfNotExist=true

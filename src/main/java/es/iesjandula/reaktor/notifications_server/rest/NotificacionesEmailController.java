@@ -89,7 +89,7 @@ public class NotificacionesEmailController
     private String from;
 
 
-    @RequestMapping(method = RequestMethod.POST, value = "/send")
+    @RequestMapping(method = RequestMethod.POST, value = "/")
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
     public ResponseEntity<?> crearNotificacionEmail(@AuthenticationPrincipal DtoAplicacion aplicacion,
                                                     @RequestBody NotificationEmailDto notificationEmailDto)

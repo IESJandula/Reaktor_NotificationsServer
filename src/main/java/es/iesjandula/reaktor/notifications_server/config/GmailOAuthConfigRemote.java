@@ -9,6 +9,7 @@ import java.security.GeneralSecurityException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -24,7 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class GmailOAuthConfig
+@Profile("VPS")
+public class GmailOAuthConfigRemote
 {
 	/** Factoría de JSON para la API de Google */
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
@@ -84,8 +86,8 @@ public class GmailOAuthConfig
 
         return new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY, clientSecrets, Constants.GOOGLE_SCOPES)
                                               .setDataStoreFactory(new FileDataStoreFactory(tokenDir))
-                                              .setAccessType("offline")
-                                              .setApprovalPrompt("force")
+                                              .setAccessType(Constants.GOOGLE_ACCESS_TYPE_OFFLINE)
+                                              .setApprovalPrompt(Constants.GOOGLE_APPROVAL_PROMPT_FORCE)
                                               .build();
     }
 
@@ -96,7 +98,7 @@ public class GmailOAuthConfig
      * - Si NO hay token, lanza excepción indicando que primero hay que ir a /gmail/authorize.
      */
     @Bean
-    public Credential gmailCredential(GoogleAuthorizationCodeFlow flow) throws IOException
+    public Credential gmailCredentials(GoogleAuthorizationCodeFlow flow) throws IOException
     {
         // Intentamos cargar credenciales existentes
         Credential credential = flow.loadCredential(Constants.GOOGLE_USER_ID);

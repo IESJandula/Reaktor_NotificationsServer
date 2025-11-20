@@ -84,8 +84,8 @@ public class Constants
 	/******************* Cronos ******************************/
 	/*********************************************************/
 	
-	/** Crono - Felicitacion */
-	public static final String CRON_FELICITACION = "0 0 0 * * *";
+	/** Crono - Felicitacion (cada 30 segundos) */
+	public static final String CRON_FELICITACION = "*/30 * * * * *";
 
 
 	/*********************************************************/
@@ -100,5 +100,11 @@ public class Constants
 
 	/** Google - Scopes */
 	public static final List<String> GOOGLE_SCOPES = Collections.singletonList("https://www.googleapis.com/auth/gmail.send");
+
+	/** Google - Access Type */
+	public static final String GOOGLE_ACCESS_TYPE_OFFLINE = "offline";
+
+	/** Google - Approval Prompt */
+	public static final String GOOGLE_APPROVAL_PROMPT_FORCE = "force";
 
 }
