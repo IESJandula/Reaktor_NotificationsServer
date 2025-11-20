@@ -84,8 +84,8 @@ public class Constants
 	/******************* Cronos ******************************/
 	/*********************************************************/
 	
-	/** Crono - Felicitacion (cada 30 segundos) */
-	public static final String CRON_FELICITACION = "*/30 * * * * *";
+	/** Crono - Felicitacion (todos los días a las 00:00) */
+	public static final String CRON_FELICITACION = "0 0 0 * * *";
 
 
 	/*********************************************************/
