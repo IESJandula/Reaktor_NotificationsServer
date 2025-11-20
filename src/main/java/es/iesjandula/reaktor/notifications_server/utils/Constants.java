@@ -33,8 +33,11 @@ public class Constants
 	/** Error - Error en el procesamiento del santoral */
 	public static final int ERR_CODE_PROCESANDO_SANTORAL          = 104 ;
 
-	/** Error - Error en el cierre del santoral */	
-	public static final int ERR_CODE_CIERRE_SANTORAL              = 105 ;
+	/** Error - Error en el cierre del flujo */	
+	public static final int ERR_CODE_CIERRE_FLUJO                 = 105 ;
+
+	/** Error - Error en el procesamiento del dia mundial */
+	public static final int ERR_CODE_PROCESANDO_DIA_MUNDIAL       = 106 ;
 
 	/*********************************************************/
 	/****************** Propiedades YAML *********************/

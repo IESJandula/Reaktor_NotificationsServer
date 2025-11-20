@@ -309,7 +309,7 @@ public class InicializacionSistema
 
 	/**
 	 * @param bufferedReader bufferedReader
-	 * @throws NotificationsServerException excepción mientras se cerraba el santoral
+	 * @throws NotificationsServerException excepción mientras se cerraba el flujo
 	 */
 	private void cerrarFlujo(BufferedReader bufferedReader) throws NotificationsServerException
 	{
@@ -322,10 +322,10 @@ public class InicializacionSistema
 			}
 			catch (IOException ioException)
 			{
-				String errorString = "IOException mientras se cerraba el santoral";
+				String errorString = "IOException mientras se cerraba el flujo";
 
 				log.error(errorString, ioException);
-				throw new NotificationsServerException(Constants.ERR_CODE_CIERRE_SANTORAL, errorString, ioException);
+				throw new NotificationsServerException(Constants.ERR_CODE_CIERRE_FLUJO, errorString, ioException);
 			}
 		}
 	}
