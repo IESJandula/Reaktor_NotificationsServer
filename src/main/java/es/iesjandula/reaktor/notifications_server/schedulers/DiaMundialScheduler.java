@@ -1,7 +1,8 @@
-package es.iesjandula.reaktor.notifications_server.scheduler;
+package es.iesjandula.reaktor.notifications_server.schedulers;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,24 +14,24 @@ import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
 import es.iesjandula.reaktor.base_client.requests.notificaciones.RequestNotificacionesEnviarWeb;
 import es.iesjandula.reaktor.base_client.utils.BaseClientConstants;
 import es.iesjandula.reaktor.base_client.utils.BaseClientException;
-import es.iesjandula.reaktor.notifications_server.repository.ISantoralRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IDiaMundialRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
-import es.iesjandula.reaktor.notifications_server.models.Santoral;
-import es.iesjandula.reaktor.notifications_server.models.ids.SantoralId;
+import es.iesjandula.reaktor.notifications_server.models.DiaMundial;
+import es.iesjandula.reaktor.notifications_server.models.ids.DiaMundialId;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class SantosScheduler
+public class DiaMundialScheduler
 {
     @Autowired
-    private ISantoralRepository santoralRepository;
+    private IDiaMundialRepository diaMundialRepository;
 
     @Autowired
     private RequestNotificacionesEnviarWeb requestNotificacionesEnviarWeb;
 
-    @Scheduled(cron = Constants.CRON_FELICITACION, zone = "Europe/Madrid")
-    public void felicitar()
+    @Scheduled(cron = Constants.CRON_EXPRESSION, zone = "Europe/Madrid")
+    public void notificarDiaMundial()
     {
         try
         {
@@ -41,48 +42,50 @@ public class SantosScheduler
             int diaActual  = fechaActual.getDayOfMonth() ;
             int anioActual = fechaActual.getYear() ;
     
-            // Creamos una instancia del ID del santoral
-            SantoralId santoralId = new SantoralId();
-            santoralId.setDia(diaActual);
-            santoralId.setMes(mesActual);
+            // Creamos una instancia del ID del dia mundial
+            DiaMundialId diaMundialId = new DiaMundialId();
+            diaMundialId.setDia(diaActual);
+            diaMundialId.setMes(mesActual);
 
-            // Obtenemos el santoral
-            Optional<Santoral> optionalSantoral = this.santoralRepository.findById(santoralId);
+            // Obtenemos el dia mundial
+            Optional<DiaMundial> optionalDiaMundial = this.diaMundialRepository.findById(diaMundialId);
     
-            // Si hay santoral, enviamos la notificación
-            if (optionalSantoral.isPresent())
+            // Si no hay dia mundial, logueamos
+            if (!optionalDiaMundial.isPresent())
             {
-                // Obtenemos el santoral
-                Santoral santoral = optionalSantoral.get();
-
-                // Enviamos la notificación
-                this.enviarNotificacionSantoral(diaActual, mesActual, anioActual, santoral) ;
+                // Logueamos
+                log.info("No hay dia mundial para notificar: " + diaActual + "/" + mesActual);
+            }
+            else
+            {
+                // Si hay dia mundial, enviamos la notificación siempre que haya usuarios con ese nombre
+                this.enviarNotificacionDiaMundial(diaActual, mesActual, anioActual, diaMundial) ;
             }
         }
         catch (BaseClientException baseClientException)
         {
-            log.error("Error al enviar las notificaciones de santos: " + baseClientException.getMessage(), baseClientException);
+            log.error("Error al enviar las notificaciones de dia mundial: " + baseClientException.getMessage(), baseClientException);
         }
     }
 
     /**
-     * Método - Enviar notificación de felicitación por el santoral
+     * Método - Enviar notificación de dia mundial
      * @param diaActual - El día actual
      * @param mesActual - El mes actual
      * @param anioActual - El año actual
-     * @param santoral - El santoral a notificar
+     * @param diaMundial - El dia mundial a notificar
      * @throws BaseClientException - Si hay un error al enviar la notificación
      */
-    private void enviarNotificacionSantoral(int diaActual, int mesActual, int anioActual, Santoral santoral) throws BaseClientException
+    private void enviarNotificacionDiaMundial(int diaActual, int mesActual, int anioActual, DiaMundial diaMundial) throws BaseClientException
     {
-        // Creamos el texto de felicitación por el santoral
-        String felicitacionSanto = "¡Hoy es " + santoral.getMasculinoFemenino() + " " + santoral.getNombre() + "! ¡Muchas felicidades a  quien le toque!";
+        // Creamos el texto de dia mundial
+        String diaMundialTexto = "Hoy es el " + diaMundial.getNombre() ;
         
         // Creamos el DTO de la notificación web
         NotificationWebDto notificationWebDto = new NotificationWebDto();
 
         // Seteamos el texto de la notificación web
-        notificationWebDto.setTexto(felicitacionSanto);
+        notificationWebDto.setTexto(diaMundialTexto);
 
         // Seteamos la fecha de inicio y fin de la notificación web
 

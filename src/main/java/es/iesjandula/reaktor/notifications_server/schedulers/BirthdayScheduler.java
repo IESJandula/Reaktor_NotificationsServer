@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.notifications_server.scheduler;
+package es.iesjandula.reaktor.notifications_server.schedulers;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -33,7 +33,7 @@ public class BirthdayScheduler
     @Autowired
     private RequestNotificacionesEnviarWeb requestNotificacionesEnviarWeb;
 
-    @Scheduled(cron = Constants.CRON_FELICITACION, zone = "Europe/Madrid")
+    @Scheduled(cron = Constants.CRON_EXPRESSION, zone = "Europe/Madrid")
     public void felicitar()
     {
         try
@@ -48,9 +48,15 @@ public class BirthdayScheduler
             // Obtenemos la información de los usuarios
             List<DtoUsuarioBase> dtoUsuariosBase = this.requestFirebaseObtenerUsuarios.obtenerUsuarios();
     
-            // Si hay usuarios, recorremos la lista y actualizamos el atributo greetings
-            if (!dtoUsuariosBase.isEmpty())
+            // Si no hay usuarios, logueamos
+            if (dtoUsuariosBase.isEmpty())
             {
+                log.info("No hay usuarios este día para enviar notificaciones de cumpleaños");
+            }
+            else
+            {
+                // Si hay usuarios, recorremos la lista y actualizamos el atributo greetings
+
                 // Recorremos la lista de usuarios
                 for (DtoUsuarioBase dtoUsuarioBase : dtoUsuariosBase) 
                 {
@@ -70,10 +76,6 @@ public class BirthdayScheduler
     
                 // Logueamos
                 log.info("Notificaciones de cumpleaños enviadas correctamente");
-            }
-            else
-            {
-                log.info("No hay usuarios este día para enviar notificaciones de cumpleaños");
             }
         }
         catch (BaseClientException baseClientException)

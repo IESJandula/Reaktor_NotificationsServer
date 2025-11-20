@@ -21,9 +21,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import es.iesjandula.reaktor.notifications_server.models.Constante;
+import es.iesjandula.reaktor.notifications_server.models.DiaMundial;
+import es.iesjandula.reaktor.notifications_server.models.DiaMundial;
+import es.iesjandula.reaktor.notifications_server.models.ids.DiaMundialId;
 import es.iesjandula.reaktor.notifications_server.models.Santoral;
 import es.iesjandula.reaktor.notifications_server.models.ids.SantoralId;
 import es.iesjandula.reaktor.notifications_server.repository.IConstanteRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IDiaMundialRepository;
 import es.iesjandula.reaktor.notifications_server.repository.ISantoralRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
@@ -39,6 +43,9 @@ public class InicializacionSistema
 
     @Autowired
     private ISantoralRepository santoralRepository;
+
+    @Autowired
+    private IDiaMundialRepository diaMundialRepository;
 
     @Value("${reaktor.reiniciarParametros}")
 	private boolean reiniciarParametros;
@@ -78,6 +85,9 @@ public class InicializacionSistema
 		{
             // Inicializamos el santoral
             this.inicializarSantoral();
+
+            // Inicializamos los dias mundiales
+            this.inicializarDiasMundiales();
 
             // Inicializamos el sistema con las constantes
             this.inicializarSistemaConConstantes();
@@ -210,6 +220,91 @@ public class InicializacionSistema
 		{
 			this.santoralRepository.saveAll(santorales);
 		}   
+	}
+
+	/**
+	 * Este método se encarga de inicializar el sistema con los dia mundial siempre
+	 * que estemos creando la base de datos ya sea en el entorno de desarrollo o
+	 * ejecutando JAR
+	 * 
+	 * @throws NotificationsServerException excepción mientras se inicializaba el dia mundial
+	 */
+	private void inicializarDiasMundiales() throws NotificationsServerException
+	{
+		// Borramos los dia mundial
+		this.diaMundialRepository.deleteAll();
+
+		// Cargamos los dia mundial desde el CSV
+		this.cargarDiasMundialesDesdeCSVInternal();
+	}
+
+	/**
+	 * Carga dias mundiales desde CSV - Internal
+	 * 
+	 * @throws NotificationsServerException excepción mientras se leían los dias mundiales
+	 */
+	private void cargarDiasMundialesDesdeCSVInternal() throws NotificationsServerException
+	{
+		// Inicializamos la lista de dia mundial
+		List<DiaMundial> diasMundiales = new ArrayList<DiaMundial>();
+
+		BufferedReader bufferedReader = null;
+
+		try
+		{
+			// Leer el archivo CSV desde la carpeta de recursos
+			bufferedReader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_DIA_MUNDIAL), Charset.forName("UTF-8")));
+
+			// Nos saltamos la primera línea
+			bufferedReader.readLine();
+
+			// Leemos la segunda línea que ya tiene datos
+			String linea = bufferedReader.readLine();
+
+			while (linea != null)
+			{
+				// Leemos la línea y la spliteamos
+				String[] valores = linea.split(",");
+
+				// Obtenemos los valores
+				Integer dia = Integer.parseInt(valores[0]);
+				Integer mes = Integer.parseInt(valores[1]);
+				String nombre = valores[2];
+
+				DiaMundial diaMundial = new DiaMundial();
+
+				// Creamos el ID del dia mundial
+				DiaMundialId diaMundialId = new DiaMundialId();
+				diaMundialId.setDia(dia);
+				diaMundialId.setMes(mes);
+
+				// Seteamos el ID y el nombre del dia mundial
+				diaMundial.setDiaMundialId(diaMundialId);
+				diaMundial.setNombre(nombre);
+
+				// Añadimos a la lista
+				diasMundiales.add(diaMundial);
+
+				// Leemos la siguiente línea
+				linea = bufferedReader.readLine();
+			}
+		}
+		catch (IOException ioException)
+		{
+			String errorString = "IOException mientras se leía línea de dia mundial";
+			log.error(errorString, ioException);
+			throw new NotificationsServerException(Constants.ERR_CODE_PROCESANDO_DIA_MUNDIAL, errorString, ioException);
+		}
+		finally
+		{
+			this.cerrarFlujo(bufferedReader);
+		}
+
+		// Guardamos los dia mundial en la base de datos
+		if (!diasMundiales.isEmpty())
+		{
+			this.diaMundialRepository.saveAll(diasMundiales);
+		}
 	}
 
 	/**

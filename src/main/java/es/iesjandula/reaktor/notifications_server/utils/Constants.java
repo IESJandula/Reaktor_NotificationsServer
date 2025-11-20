@@ -78,14 +78,18 @@ public class Constants
 	/*********************************************************/
 
 	/** Fichero CSV - Santorales */
-	public static final String FICHERO_SANTORALES = NOTIFICATIONS_SERVER_CONFIG_EXEC + File.separator + "santoral.csv";
+	public static final String FICHERO_SANTORALES  = NOTIFICATIONS_SERVER_CONFIG_EXEC + File.separator + "santoral.csv";
+	
+	/** Fichero CSV - Día Mundial */
+	public static final String FICHERO_DIA_MUNDIAL = NOTIFICATIONS_SERVER_CONFIG_EXEC + File.separator + "dia_mundial.csv";
+
 
 	/*********************************************************/
 	/******************* Cronos ******************************/
 	/*********************************************************/
 	
-	/** Crono - Felicitacion (todos los días a las 00:00) */
-	public static final String CRON_FELICITACION = "0 0 0 * * *";
+	/** Cron Expression (todos los días a las 00:00) */
+	public static final String CRON_EXPRESSION = "0 0 0 * * *";
 
 
 	/*********************************************************/
