@@ -58,6 +58,9 @@ public class DiaMundialScheduler
             }
             else
             {
+                // Obtenemos el dia mundial
+                DiaMundial diaMundial = optionalDiaMundial.get();
+
                 // Si hay dia mundial, enviamos la notificación siempre que haya usuarios con ese nombre
                 this.enviarNotificacionDiaMundial(diaActual, mesActual, anioActual, diaMundial) ;
             }
