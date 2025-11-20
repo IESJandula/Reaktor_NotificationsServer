@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import es.iesjandula.reaktor.base.utils.FechasUtils;
-import es.iesjandula.reaktor.base_client.dtos.DtoUsuarioBase;
+import es.iesjandula.reaktor.base.security.models;
 import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
 import es.iesjandula.reaktor.base_client.requests.notificaciones.RequestNotificacionesEnviarWeb;
 import es.iesjandula.reaktor.base_client.utils.BaseClientConstants;
