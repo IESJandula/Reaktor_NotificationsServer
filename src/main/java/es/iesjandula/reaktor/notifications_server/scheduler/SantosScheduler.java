@@ -76,7 +76,7 @@ public class SantosScheduler
     private void enviarNotificacionSantoral(int diaActual, int mesActual, int anioActual, Santoral santoral) throws BaseClientException
     {
         // Creamos el texto de felicitación por el santoral
-        String felicitacionSanto = "¡Hoy es el santo de " + santoral.getNombre() + "! ¡Muchas felicidades!";
+        String felicitacionSanto = "¡Hoy es " + santoral.getMasculinoFemenino() + " " + santoral.getNombre() + "! ¡Muchas felicidades a  quien le toque!";
         
         // Creamos el DTO de la notificación web
         NotificationWebDto notificationWebDto = new NotificationWebDto();

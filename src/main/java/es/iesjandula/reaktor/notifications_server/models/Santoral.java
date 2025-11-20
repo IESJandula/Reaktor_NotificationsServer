@@ -12,6 +12,9 @@ public class Santoral
     @EmbeddedId
     private SantoralId santoralId;
 
+    /** Masculino o Femenino */
+    private String masculinoFemenino ;
+
     /** Nombre del santoral */
     private String nombre;
 }

@@ -170,9 +170,10 @@ public class InicializacionSistema
 				String[] valores = linea.split(",");
 
                 // Obtenemos los valores
-                Integer dia   = Integer.parseInt(valores[0]);
-                Integer mes   = Integer.parseInt(valores[1]);
-                String nombre = valores[2];
+                Integer dia              = Integer.parseInt(valores[0]);
+                Integer mes              = Integer.parseInt(valores[1]);
+				String masculinoFemenino = valores[2];
+                String nombre            = valores[3];
 
 				Santoral santoral = new Santoral();
 
@@ -183,6 +184,7 @@ public class InicializacionSistema
 
                 // Seteamos el ID y el nombre del santoral
 				santoral.setSantoralId(santoralId);
+				santoral.setMasculinoFemenino(masculinoFemenino);
 				santoral.setNombre(nombre);
 
 				// Añadimos a la lista
