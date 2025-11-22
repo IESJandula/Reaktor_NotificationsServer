@@ -53,6 +53,9 @@ public class CalendarController {
     
     @Autowired 
     private INotificacionCalendarInvitadosAplicacionRepository invitadosAplicacionRepository;
+    
+    @Autowired
+    private Credential calendarCredentials;
 
     /** Constantes para Google Calendar */
     private static final GsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
@@ -69,7 +72,7 @@ public class CalendarController {
      * de datos, genera los invitados y finalmente crea el evento en el Calendar del usuario.
      *
      * @param dto - Datos del evento a crear
-     * @param usuarioAccion - Usuario autenticado que ejecuta la acción
+     * @param aplicacionAutenticada - Aplicación autenticada que ejecuta la acción
      * @return ResponseEntity - Resultado del proceso
      * @throws NotificationsServerException - Error genérico controlado
      */
@@ -77,7 +80,7 @@ public class CalendarController {
     @PreAuthorize("hasRole('" + es.iesjandula.reaktor.base.utils.BaseConstants.ROLE_APLICACION_NOTIFICACIONES + "')")
     public ResponseEntity<?> crearEventoCalendar(
             @RequestBody GoogleCalendarDto dto,
-            @AuthenticationPrincipal String usuarioAccion)
+            @AuthenticationPrincipal DtoAplicacion aplicacionAutenticada)  
             throws NotificationsServerException {
         try {
             // -------------------------------------------------------------------------------------------------
@@ -88,7 +91,7 @@ public class CalendarController {
             NotificacionCalendarAplicacion notificacion = new NotificacionCalendarAplicacion();
             notificacion.setAplicacion(aplicacion);
             notificacion.setTitulo(dto.getTitulo());
-            notificacion.setFechaCreacion(LocalDateTime.now().toLocalDate()); // Corregido: LocalDate
+            notificacion.setFechaCreacion(LocalDateTime.now().toLocalDate());
             notificacion.setFechaInicio(Date.from(dto.getFechaInicio().atZone(java.time.ZoneId.systemDefault()).toInstant()));
             notificacion.setFechaFin(Date.from(dto.getFechaFin().atZone(java.time.ZoneId.systemDefault()).toInstant()));
 
@@ -154,10 +157,6 @@ public class CalendarController {
         	return ResponseEntity.status(500).body(notificationsServerException.getBodyExceptionMessage());
         }
     }
-    
-    // =========================================================================================================
-    //                                           MÉTODOS PRIVADOS
-    // =========================================================================================================
 
     /**
      * Método - Buscar o crear la aplicación emisora de la notificación
@@ -187,18 +186,36 @@ public class CalendarController {
      * @return DateTime - Objeto compatible con Google Calendar
      */
     private DateTime convertirAEventDateTime(LocalDateTime ldt) {
-        return new DateTime(java.util.Date.from(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant()));
+        return new DateTime(Date.from(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant()));
     }
 
-    /**
+    /** 
      * Método - Obtener credenciales OAuth2 del usuario
      *
+     * Este método devuelve las credenciales OAuth2 necesarias para utilizar
+     * la API de Google Calendar. Las credenciales son inyectadas desde un 
+     * bean de Spring configurado previamente (similar a gmailCredentials).
+     *
      * @return Credential - Token válido
-     * @throws Exception - Error al obtener credenciales
+     * @throws Exception - Si ocurre algún problema obteniendo las credenciales
      */
-    private Credential obtenerCredenciales() throws Exception {
-        throw new RuntimeException("TODO: Implementar obtenerCredenciales()");
+    private Credential obtenerCredenciales() throws Exception 
+    {
+        try 
+        {
+            return this.calendarCredentials;
+        }
+        catch (Exception exception) 
+        {
+            String errorMessage = "Error al obtener las credenciales de Google Calendar";
+            throw new NotificationsServerException(
+                    Constants.ERR_GENERIC_EXCEPTION_CODE,
+                    errorMessage,
+                    exception
+            );
+        }
     }
+
 
     /**
      * Método - Construir servicio Google Calendar
