@@ -22,7 +22,6 @@ import org.springframework.util.ResourceUtils;
 
 import es.iesjandula.reaktor.notifications_server.models.Constante;
 import es.iesjandula.reaktor.notifications_server.models.DiaMundial;
-import es.iesjandula.reaktor.notifications_server.models.DiaMundial;
 import es.iesjandula.reaktor.notifications_server.models.ids.DiaMundialId;
 import es.iesjandula.reaktor.notifications_server.models.Santoral;
 import es.iesjandula.reaktor.notifications_server.models.ids.SantoralId;

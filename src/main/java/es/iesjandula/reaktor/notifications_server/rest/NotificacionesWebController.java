@@ -23,23 +23,20 @@ import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.base_client.utils.BaseClientConstants;
 import es.iesjandula.reaktor.notifications_server.dtos.NotificacionesWebResponseDto;
-import es.iesjandula.reaktor.notifications_server.models.Actor;
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
-import es.iesjandula.reaktor.notifications_server.models.Constante;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.NotificacionWeb;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
-import es.iesjandula.reaktor.notifications_server.repository.IConstanteRepository;
-import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebUsuarioRepository;
-import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import lombok.extern.slf4j.Slf4j;
 
 import es.iesjandula.reaktor.base.utils.FechasUtils;
+import es.iesjandula.reaktor.notifications_server.services.UsersService;
+import es.iesjandula.reaktor.notifications_server.services.AplicacionesService;
 
 @RestController
 @RequestMapping("/notifications/web")
@@ -47,19 +44,16 @@ import es.iesjandula.reaktor.base.utils.FechasUtils;
 public class NotificacionesWebController 
 {
 	@Autowired
-	private IAplicacionRepository aplicacionRepository ;
-
-	@Autowired
-	private IUsuarioRepository usuarioRepository ;
-	
-	@Autowired
 	private INotificacionWebUsuarioRepository notificacionWebUsuarioRepository ;
 
 	@Autowired
 	private INotificacionWebAplicacionRepository notificacionWebAplicacionRepository ;
 
 	@Autowired
-	private IConstanteRepository constanteRepository ;
+	private UsersService usersService ;
+
+	@Autowired
+	private AplicacionesService aplicacionesService ;
 
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
 	@RequestMapping(method = RequestMethod.GET, value = "/receptors")
@@ -101,7 +95,7 @@ public class NotificacionesWebController
 		try 
 	    {
 			// Obtenemos el usuario de la base de datos
-			Usuario usuarioDatabase = this.obtenerUsuario(usuario) ;
+			Usuario usuarioDatabase = this.usersService.obtenerUsuario(usuario) ;
 
 			if (usuarioDatabase.getNotifHoyWeb() >= usuarioDatabase.getNotifMaxWeb())
 			{
@@ -136,47 +130,6 @@ public class NotificacionesWebController
 	}
 
 	/**
-	 * Método auxiliar para obtener el usuario de la base de datos
-	 * @param usuario Usuario extendido
-	 * @return Usuario de la base de datos
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private Usuario obtenerUsuario(DtoUsuarioExtended usuario) throws NotificationsServerException
-	{
-		// Creamos variable de usuario
-		Usuario usuarioDatabase = null;
-
-		// Buscamos si existe el usuario, sino lo creamos
-		Optional<Usuario> usuarioDatabaseOptional = this.usuarioRepository.findById(usuario.getEmail()) ;
-
-		// Si no existe el usuario ...
-		if (usuarioDatabaseOptional.isEmpty())
-		{
-			// ... creamos una nueva instancia de usuario
-			usuarioDatabase = new Usuario() ;
-
-			// Seteamos los atributos del usuario
-			usuarioDatabase.setEmail(usuario.getEmail());
-			usuarioDatabase.setNombre(usuario.getNombre());
-			usuarioDatabase.setApellidos(usuario.getApellidos());
-			usuarioDatabase.setRoles(String.join(",", usuario.getRoles()));
-
-			// Seteamos los campos comunes de la aplicación
-			this.setearCamposComunesActores(usuarioDatabase, LocalDateTime.now());
-
-			// Guardamos el usuario en la base de datos
-			this.usuarioRepository.saveAndFlush(usuarioDatabase);
-		}
-		else
-		{
-			// ... obtenemos el usuario de la base de datos
-			usuarioDatabase = usuarioDatabaseOptional.get();
-		}
-
-		return usuarioDatabase;
-	}
-
-	/**
 	 * Método auxiliar para crear una notificación web
 	 * @param usuario Usuario
 	 * @param texto Texto de la notificación web
@@ -207,11 +160,8 @@ public class NotificacionesWebController
 		// Guardamos la notificación web de usuario en la base de datos
 		this.notificacionWebUsuarioRepository.saveAndFlush(notificacionWebUsuario);
 
-		// Incrementamos el número de notificaciones web del usuario
-		usuario.setNotifHoyWeb(usuario.getNotifHoyWeb() + 1);
-
-		// Guardamos el usuario en la base de datos
-		this.usuarioRepository.saveAndFlush(usuario);
+		// Actualizamos el usuario en la base de datos
+		this.usersService.usuarioHaEnviadoNotificacionWeb(usuario);
 	}
 
 	/**
@@ -245,11 +195,8 @@ public class NotificacionesWebController
 			// Obtenemos la información del usuario
 			Usuario usuarioDatabase = notificacionUsuario.getUsuario();
 
-			// Incrementamos el número de notificaciones web del usuario
-			usuarioDatabase.setNotifHoyWeb(usuarioDatabase.getNotifHoyWeb() + 1);
-			
-			// Actualizamos el usuario en la base de datos
-			this.usuarioRepository.saveAndFlush(usuarioDatabase);
+			// Actualizamos el usuario al eliminar la notificación web
+			this.usersService.usuarioHaEliminadoNotificacionWeb(usuarioDatabase);
 
 			// Eliminamos la notificación web de usuario en la base de datos
 			this.notificacionWebUsuarioRepository.delete(notificacionUsuario);
@@ -321,7 +268,7 @@ public class NotificacionesWebController
 	    try 
 	    {
 			// Obtenemos la aplicación de la base de datos
-			Aplicacion aplicacionDatabase = this.obtenerAplicacion(aplicacion);
+			Aplicacion aplicacionDatabase = this.aplicacionesService.obtenerAplicacion(aplicacion);
 
 			if (aplicacionDatabase.getNotifHoyWeb() >= aplicacionDatabase.getNotifMaxWeb())
 			{
@@ -353,108 +300,6 @@ public class NotificacionesWebController
 			NotificationsServerException notificationsServerException =  new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, exception);
 	        return ResponseEntity.status(500).body(notificationsServerException.getBodyExceptionMessage());
 	    }
-	}
-
-	/**
-	 * Método auxiliar para obtener la aplicación de la base de datos
-	 * @param aplicacion Aplicación
-	 * @return Aplicación de la base de datos
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private Aplicacion obtenerAplicacion(DtoAplicacion aplicacion) throws NotificationsServerException
-	{
-		// Buscamos si existe la aplicación, sino lo creamos
-		Aplicacion aplicacionDatabase = this.aplicacionRepository.findByNombre(aplicacion.getNombre());
-
-		// Si no existe la aplicación ...
-		if (aplicacionDatabase == null)
-		{
-			// ... creamos una nueva instancia de aplicación
-			aplicacionDatabase = new Aplicacion() ;
-
-			// Seteamos los receptores de la aplicación
-			aplicacionDatabase.setRoles(String.join(",", aplicacion.getRoles()));
-
-			// Obtenemos la fecha y hora actual
-			LocalDateTime ahora = LocalDateTime.now();
-			
-			// Seteamos los campos comunes de la aplicación
-			this.setearCamposComunesActores(aplicacionDatabase, ahora);
-			
-			// Seteamos los atributos del usuario
-			aplicacionDatabase.setNombre(aplicacion.getNombre());
-
-			// Seteamos las fechas de última notificación
-			aplicacionDatabase.setFechaUltimaNotificacionCalendar(ahora) ;
-			aplicacionDatabase.setFechaUltimaNotificacionEmail(ahora) ;
-
-			// Seteamos el número de notificaciones de hoy
-			aplicacionDatabase.setNotifHoyCalendar(0) ;
-			aplicacionDatabase.setNotifHoyEmail(0) ;
-
-			// Obtenemos la constante de notificaciones máximas de tipo email
-			Constante constanteNotificacionesMaxEmail = this.obtenerConstante(Constants.TABLA_CONST_NOTIFICACIONES_MAX_EMAILS) ;
-
-			// Seteamos el número de notificaciones máximas de tipo email
-			aplicacionDatabase.setNotifMaxEmail(Integer.parseInt(constanteNotificacionesMaxEmail.getValor())) ;
-
-			// Obtenemos la constante de notificaciones máximas de tipo calendar
-			Constante constanteNotificacionesMaxCalendar = this.obtenerConstante(Constants.TABLA_CONST_NOTIFICACIONES_MAX_CALENDAR) ;
-
-			// Seteamos el número de notificaciones máximas de tipo calendar
-			aplicacionDatabase.setNotifMaxCalendar(Integer.parseInt(constanteNotificacionesMaxCalendar.getValor())) ;
-
-			// Guardamos la aplicación en la base de datos
-			this.aplicacionRepository.saveAndFlush(aplicacionDatabase);
-		}
-
-		return aplicacionDatabase;
-	}
-
-	/**
-	 * Método auxiliar para setear los campos comunes de un actor
-	 * @param actor Actor
-	 * @param ahora Fecha y hora actual
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private void setearCamposComunesActores(Actor actor, LocalDateTime ahora) throws NotificationsServerException
-	{
-		// Seteamos la fecha de la última notificación web
-		actor.setFechaUltimaNotificacionWeb(ahora) ;
-
-		// Inicializamos el número de notificaciones hoy
-		actor.setNotifHoyWeb(0) ;
-
-		// Obtenemos la constante de notificaciones máximas de tipo web
-		Constante constanteNotificacionesMaxWeb = this.obtenerConstante(Constants.TABLA_CONST_NOTIFICACIONES_MAX_WEB) ;
-		
-		// Inicializamos el número de notificaciones máximas
-		actor.setNotifMaxWeb(Integer.parseInt(constanteNotificacionesMaxWeb.getValor())) ;
-	}
-
-
-	/**
-	 * Método auxiliar para obtener una constante de la base de datos
-	 * @param clave Clave de la constante
-	 * @return Constante de la base de datos
-	 * @throws NotificationsServerException Excepción de notificaciones web
-	 */
-	private Constante obtenerConstante(String clave) throws NotificationsServerException
-	{
-		// Obtenemos la constante
-		Optional<Constante> optionalConstante = this.constanteRepository.findById(clave) ;
-
-		// Si no existe la constante, la creamos
-		if (!optionalConstante.isPresent())
-		{
-			String errorMessage = "Constante no encontrada: " + clave;
-
-			log.error(errorMessage);
-			throw new NotificationsServerException(Constants.ERR_CONSTANTE_NO_ENCONTRADA, errorMessage);
-		}
-
-		// Obtenemos la constante
-		return optionalConstante.get() ;
 	}
 
 	/**
@@ -545,6 +390,9 @@ public class NotificacionesWebController
 
 		// Guardamos la notificación web de aplicación en la base de datos
 		this.notificacionWebAplicacionRepository.saveAndFlush(notificacionWebAplicacion);
+
+		// Actualizamos la aplicación al enviar la notificación web
+		this.aplicacionesService.aplicacionHaEnviadoNotificacionWeb(aplicacion);
 	}
 
 	/**
@@ -620,7 +468,6 @@ public class NotificacionesWebController
 
 		try 
 		{
-
 			// Obtenemos los receptores de notificaciones
 			List<String> receptores = this.obtenerReceptores(usuario.getRoles());
 
@@ -737,11 +584,8 @@ public class NotificacionesWebController
 			// Obtenemos la información de la aplicación
 			Aplicacion aplicacionDatabase = notificacionWebAplicacion.getAplicacion();
 
-			// Incrementamos el número de notificaciones web de la aplicación
-			aplicacionDatabase.setNotifHoyWeb(aplicacionDatabase.getNotifHoyWeb() + 1);
-			
-			// Actualizamos la aplicación en la base de datos
-			this.aplicacionRepository.saveAndFlush(aplicacionDatabase);
+			// Actualizamos la aplicación al eliminar la notificación web
+			this.aplicacionesService.aplicacionHaEliminadoNotificacionWeb(aplicacionDatabase);
 
 			// Eliminamos la notificación web de aplicación en la base de datos
 			this.notificacionWebAplicacionRepository.delete(notificacionWebAplicacion);

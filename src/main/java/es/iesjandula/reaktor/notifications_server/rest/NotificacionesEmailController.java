@@ -46,8 +46,10 @@ import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailC
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailCopiaUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailParaUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
+import es.iesjandula.reaktor.notifications_server.services.AplicacionesService;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
+import es.iesjandula.reaktor.notifications_server.services.UsersService;
 
 @Slf4j
 @RestController
@@ -70,15 +72,17 @@ public class NotificacionesEmailController
     @Autowired 
     private INotificacionEmailCopiaOcultaUsuarioRepository notificacionEmailCopiaOcultaUsuarioRepository;
     
-    /* Atributo - Repositorio de usuarios */
-    @Autowired 
-    private IUsuarioRepository usuarioRepository;
-    
     @Autowired
     private INotificacionEmailAplicacionRepository notificacionEmailAplicacionRepository;
 
     @Autowired
     private IAplicacionRepository aplicacionRepository;
+
+    @Autowired
+    private AplicacionesService aplicacionesService;
+
+    @Autowired
+    private UsersService usersService;
 
     /* Atributo - Nombre de la aplicación de Gmail */
     @Value("${reaktor.gmail.appName}")
@@ -107,6 +111,12 @@ public class NotificacionesEmailController
 
             // Guardamos la notificación de email en la base de datos
             this.notificacionEmailAplicacionRepository.save(notificacionEmailAplicacion);
+
+            // Obtenemos la aplicación emisora
+            Aplicacion aplicacionEmisora = notificacionEmailAplicacion.getAplicacion();
+
+            // Actualizamos la aplicación al enviar la notificación de email
+            this.aplicacionesService.aplicacionHaEnviadoNotificacionEmail(aplicacionEmisora);
 
             log.info("Correo enviado con éxito por la aplicación {}", 
                      notificacionEmailAplicacion.getAplicacion().getNombre());
@@ -170,7 +180,7 @@ public class NotificacionesEmailController
             {
                 for (String correo : notificationEmailDto.getTo())
                 {
-                    Usuario usuarioPara = this.obtenerUsuarioPorEmail(correo);
+                    Usuario usuarioPara = this.usersService.obtenerUsuarioPorEmail(correo);
 
                     NotificacionEmailParaUsuario notificacionPara = new NotificacionEmailParaUsuario();
                     notificacionPara.setUsuario(usuarioPara);
@@ -187,7 +197,7 @@ public class NotificacionesEmailController
             {
                 for (String correo : notificationEmailDto.getCc())
                 {
-                    Usuario usuarioCopia = this.obtenerUsuarioPorEmail(correo);
+                    Usuario usuarioCopia = this.usersService.obtenerUsuarioPorEmail(correo);
 
                     NotificacionEmailCopiaUsuario notificacionCopia = new NotificacionEmailCopiaUsuario();
                     notificacionCopia.setUsuario(usuarioCopia);
@@ -204,7 +214,7 @@ public class NotificacionesEmailController
             {
                 for (String correo : notificationEmailDto.getBcc())
                 {
-                    Usuario usuarioCopiaOculta = this.obtenerUsuarioPorEmail(correo);
+                    Usuario usuarioCopiaOculta = this.usersService.obtenerUsuarioPorEmail(correo);
 
                     NotificacionEmailCopiaOcultaUsuario notificacionCopiaOculta = new NotificacionEmailCopiaOcultaUsuario();
                     notificacionCopiaOculta.setUsuario(usuarioCopiaOculta);
@@ -285,27 +295,6 @@ public class NotificacionesEmailController
 
         // Guardar cambios
         this.aplicacionRepository.save(aplicacion);
-    }
-
-
-    /** Método - Obtener usuario por email
-     *
-     * @param email - Email del usuario
-     * @return Usuario
-     * @throws NotificationsServerException - Si el usuario no existe
-     */
-    private Usuario obtenerUsuarioPorEmail(String email) throws NotificationsServerException
-    {
-        // Buscamos el usuario por email
-        Optional<Usuario> usuarioOptional = this.usuarioRepository.findByEmail(email);
-        if (usuarioOptional.isEmpty())
-        {
-            String errorMessage = "Usuario no encontrado: " + email;
-            log.error(errorMessage);
-            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage, null);
-        }
-
-        return usuarioOptional.get();
     }
 
     /**

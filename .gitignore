@@ -4,3 +4,6 @@
 .classpath
 bin/
 tokens/
+.vscode/
+.idea/
+notifications_server_config_exec/*.csv
