@@ -39,6 +39,12 @@ public class Constants
 	/** Error - Error en el procesamiento del dia mundial */
 	public static final int ERR_CODE_PROCESANDO_DIA_MUNDIAL       = 106 ;
 
+	/** Error - Aplicación no encontrada */
+	public static final int ERR_CODE_APLICACION_NO_ENCONTRADA     = 107 ;
+
+	/** Error - Aplicación ya existe */
+	public static final int ERR_CODE_APLICACION_YA_EXISTE          = 108 ;
+
 	/*********************************************************/
 	/****************** Propiedades YAML *********************/
 	/*********************************************************/

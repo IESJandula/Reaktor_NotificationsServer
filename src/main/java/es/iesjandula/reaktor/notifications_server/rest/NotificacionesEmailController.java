@@ -37,6 +37,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
 
 import es.iesjandula.reaktor.notifications_server.models.Aplicacion;
+import es.iesjandula.reaktor.notifications_server.models.Constante;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.NotificacionEmailCopiaOcultaUsuario;
@@ -45,10 +46,10 @@ import es.iesjandula.reaktor.notifications_server.models.notificacion_emails.Not
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailCopiaOcultaUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailCopiaUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailParaUsuarioRepository;
-import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.services.AplicacionesService;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionEmailAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IConstanteRepository;
 import es.iesjandula.reaktor.notifications_server.services.UsersService;
 
 @Slf4j
@@ -77,6 +78,9 @@ public class NotificacionesEmailController
 
     @Autowired
     private IAplicacionRepository aplicacionRepository;
+
+    @Autowired
+    private IConstanteRepository constanteRepository;
 
     @Autowired
     private AplicacionesService aplicacionesService;
@@ -155,11 +159,9 @@ public class NotificacionesEmailController
             Aplicacion aplicacion = this.buscarOCrearAplicacion(dtoAplicacion);
 
             // Verificamos si la aplicación puede enviar otro email
-            this.verificarYActualizarEnviosEmail(aplicacion);
+            this.verificarEnviosEmail(aplicacion);
 
-            // ==========================================================
-            // 2️⃣ Crear la notificación de email para la aplicación
-            // ==========================================================
+            // Creamos la notificación de email para la aplicación
             NotificacionEmailAplicacion notificacionAplicacion = new NotificacionEmailAplicacion();
 
             // Asignar la aplicación emisora
@@ -173,9 +175,7 @@ public class NotificacionesEmailController
             // Guardar la notificación principal
             NotificacionEmailAplicacion notificacionEmailAplicacion = this.notificacionEmailAplicacionRepository.save(notificacionAplicacion);
 
-            // ==========================================================
-            // 3️⃣ Guardar los destinatarios del email (TO)
-            // ==========================================================
+            // Guardamos los destinatarios del email (TO)
             if (notificationEmailDto.getTo() != null)
             {
                 for (String correo : notificationEmailDto.getTo())
@@ -190,9 +190,7 @@ public class NotificacionesEmailController
                 }
             }
 
-            // ==========================================================
-            // 4️⃣ Guardar los destinatarios en copia (CC)
-            // ==========================================================
+            // Guardamos los destinatarios en copia (CC)
             if (notificationEmailDto.getCc() != null)
             {
                 for (String correo : notificationEmailDto.getCc())
@@ -207,9 +205,7 @@ public class NotificacionesEmailController
                 }
             }
 
-            // ==========================================================
-            // 5️⃣ Guardar los destinatarios en copia oculta (BCC)
-            // ==========================================================
+            // Guardamos los destinatarios en copia oculta (BCC)
             if (notificationEmailDto.getBcc() != null)
             {
                 for (String correo : notificationEmailDto.getBcc())
@@ -224,9 +220,7 @@ public class NotificacionesEmailController
                 }
             }
 
-            // ==========================================================
-            // 6️⃣ Registro completo
-            // ==========================================================
+            // Logueamos el registro completo
             log.info("Notificación creada correctamente para la aplicación '{}'", aplicacion.getNombre());
 
             return notificacionEmailAplicacion;
@@ -244,8 +238,9 @@ public class NotificacionesEmailController
      *
      * @param dtoAplicacion - La aplicación emisora
      * @return Aplicacion - La aplicación emisora creada
+     * @throws NotificationsServerException - Si hay un error al buscar o crear la aplicación
      */
-    private Aplicacion buscarOCrearAplicacion(DtoAplicacion dtoAplicacion)
+    private Aplicacion buscarOCrearAplicacion(DtoAplicacion dtoAplicacion) throws NotificationsServerException
     {
         Aplicacion aplicacion = this.aplicacionRepository.findByNombre(dtoAplicacion.getNombre());
         if (aplicacion == null)
@@ -253,10 +248,10 @@ public class NotificacionesEmailController
             aplicacion = new Aplicacion();
             aplicacion.setNombre(dtoAplicacion.getNombre());
 
-            // Cuando tengas hecho la tabla de constantes, deberás devolver aquí los valores almacenados
-            aplicacion.setNotifMaxWeb(10);
-            aplicacion.setNotifMaxEmail(10);
-            aplicacion.setNotifMaxCalendar(10);
+            // Obtenemos las notificaciones máximas según el tipo
+            aplicacion.setNotifMaxWeb(this.obtenerNotificacionesMaximasSegunTipo(Constants.TABLA_CONST_NOTIFICACIONES_MAX_WEB));
+            aplicacion.setNotifMaxEmail(this.obtenerNotificacionesMaximasSegunTipo(Constants.TABLA_CONST_NOTIFICACIONES_MAX_EMAILS));
+            aplicacion.setNotifMaxCalendar(this.obtenerNotificacionesMaximasSegunTipo(Constants.TABLA_CONST_NOTIFICACIONES_MAX_CALENDAR));
 
             // Almacenamos la aplicación en la base de datos
             aplicacion = this.aplicacionRepository.save(aplicacion);
@@ -266,18 +261,51 @@ public class NotificacionesEmailController
     }
 
     /**
+     * Método - Obtener las notificaciones máximas según el tipo
+     *
+     * @param tipo - El tipo de notificación
+     * @return int - Las notificaciones máximas
+     * @throws NotificationsServerException - Si hay un error al obtener las notificaciones máximas
+     */
+    private int obtenerNotificacionesMaximasSegunTipo(String tipo) throws NotificationsServerException
+    {
+        Optional<Constante> optionalConstante = this.constanteRepository.findById(tipo);
+        if (optionalConstante.isEmpty())
+        {
+            // Construimos el mensaje de error
+            String errorMessage = "La constante " + tipo + " no está configurada";
+
+            // Logueamos
+            log.error(errorMessage);
+
+            // Lanzamos una excepción
+            throw new NotificationsServerException(Constants.ERR_CONSTANTE_NO_ENCONTRADA, errorMessage);
+        }
+
+        // Obtenemos la constante
+        Constante constante = optionalConstante.get();
+
+        // Devolvemos el valor de la constante
+        return Integer.parseInt(constante.getValor());
+    }
+
+    /**
      * Verifica si el usuario puede enviar otro email y actualiza sus contadores.
      *
      * @param aplicacion Aplicación que intenta enviar un correo
      * @throws NotificationsServerException Si supera el máximo diario permitido
      */
-    private void verificarYActualizarEnviosEmail(Aplicacion aplicacion) throws NotificationsServerException
+    private void verificarEnviosEmail(Aplicacion aplicacion) throws NotificationsServerException
     {
         // Si la fecha de la última notificación no es de hoy, reiniciamos contador
         if (aplicacion.getFechaUltimaNotificacionEmail() == null ||
             !aplicacion.getFechaUltimaNotificacionEmail().toLocalDate().equals(java.time.LocalDate.now()))
         {
+            // Reiniciamos el contador de emails diarios
             aplicacion.setNotifHoyEmail(0);
+    
+            // Guardamos los cambios en la base de datos
+            this.aplicacionRepository.save(aplicacion);
         }
 
         // Comprobar límite diario
@@ -288,13 +316,6 @@ public class NotificacionesEmailController
 
             throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage);
         }
-
-        // Actualizar fecha y contador
-        aplicacion.setFechaUltimaNotificacionEmail(java.time.LocalDateTime.now());
-        aplicacion.setNotifHoyEmail(aplicacion.getNotifHoyEmail() + 1);
-
-        // Guardar cambios
-        this.aplicacionRepository.save(aplicacion);
     }
 
     /**
