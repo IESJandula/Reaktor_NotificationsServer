@@ -282,10 +282,10 @@ public class NotificacionesWebController
 			this.validacionesPrevias(texto, fechaInicio, horaInicio, fechaFin, horaFin, receptor, tipo);
 
 			// Creamos la notificación web de aplicación
-			this.crearNotificacionWebApp(aplicacionDatabase, texto, fechaInicio, horaInicio, fechaFin, horaFin, receptor, tipo);
+			Long idNotificacion = this.crearNotificacionWebApp(aplicacionDatabase, texto, fechaInicio, horaInicio, fechaFin, horaFin, receptor, tipo);
 
 			// Devolvemos la respuesta
-	        return ResponseEntity.status(200).build() ;
+	        return ResponseEntity.status(200).body(idNotificacion) ;
 
 	    }
         catch (NotificationsServerException firebaseServerServerException)
@@ -371,9 +371,10 @@ public class NotificacionesWebController
 	 * @param receptor Receptor de la notificación web
 	 * @param tipo Tipo de notificación web
 	 * @throws BaseException Excepción base
+	 * @return Long identificador de la notificación web
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	private void crearNotificacionWebApp(Aplicacion aplicacion, 
+	private Long crearNotificacionWebApp(Aplicacion aplicacion, 
 	                                     String texto,
 										 String fechaInicio, String horaInicio,
 										 String fechaFin,    String horaFin,
@@ -393,6 +394,9 @@ public class NotificacionesWebController
 
 		// Actualizamos la aplicación al enviar la notificación web
 		this.aplicacionesService.aplicacionHaEnviadoNotificacionWeb(aplicacion);
+
+		// Devolvemos el identificador de la notificación web
+		return notificacionWebAplicacion.getId();
 	}
 
 	/**
