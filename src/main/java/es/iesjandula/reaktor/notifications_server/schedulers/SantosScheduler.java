@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.base.utils.FechasUtils;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
 import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
@@ -90,9 +91,9 @@ public class SantosScheduler
                 }
             }
         }
-        catch (BaseClientException baseClientException)
+        catch (BaseException | BaseClientException reaktorException)
         {
-            log.error("Error al enviar las notificaciones de santos: " + baseClientException.getMessage(), baseClientException);
+            log.error("Error al enviar las notificaciones de santos: " + reaktorException.getMessage(), reaktorException);
         }
     }
 
@@ -128,9 +129,10 @@ public class SantosScheduler
      * @param mesActual - El mes actual
      * @param anioActual - El año actual
      * @param santoral - El santoral a notificar
+     * @throws BaseException error al obtener el token personalizado
      * @throws BaseClientException - Si hay un error al enviar la notificación
      */
-    private void enviarNotificacionSantoral(int diaActual, int mesActual, int anioActual, Santoral santoral) throws BaseClientException
+    private void enviarNotificacionSantoral(int diaActual, int mesActual, int anioActual, Santoral santoral) throws BaseException, BaseClientException
     {
         // Creamos el texto de felicitación por el santoral
         String felicitacionSanto = "¡Hoy es " + santoral.getMasculinoFemenino() + " " + santoral.getNombre() + "! ¡Muchas felicidades a  quien le toque!";

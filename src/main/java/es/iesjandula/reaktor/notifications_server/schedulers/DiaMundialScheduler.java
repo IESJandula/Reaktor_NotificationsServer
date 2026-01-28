@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.base.utils.FechasUtils;
 import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
 import es.iesjandula.reaktor.base_client.requests.notificaciones.RequestNotificacionesEnviarWeb;
@@ -64,9 +65,9 @@ public class DiaMundialScheduler
                 this.enviarNotificacionDiaMundial(diaActual, mesActual, anioActual, diaMundial) ;
             }
         }
-        catch (BaseClientException baseClientException)
+        catch (BaseException | BaseClientException reaktorException)
         {
-            log.error("Error al enviar las notificaciones de dia mundial: " + baseClientException.getMessage(), baseClientException);
+            log.error("Error al enviar las notificaciones de dia mundial: " + reaktorException.getMessage(), reaktorException);
         }
     }
 
@@ -76,9 +77,10 @@ public class DiaMundialScheduler
      * @param mesActual - El mes actual
      * @param anioActual - El año actual
      * @param diaMundial - El dia mundial a notificar
-     * @throws BaseClientException - Si hay un error al enviar la notificación
+     * @throws BaseException error al obtener el token personalizado
+     * @throws BaseClientException con un error al enviar la notificación
      */
-    private void enviarNotificacionDiaMundial(int diaActual, int mesActual, int anioActual, DiaMundial diaMundial) throws BaseClientException
+    private void enviarNotificacionDiaMundial(int diaActual, int mesActual, int anioActual, DiaMundial diaMundial) throws BaseException, BaseClientException
     {
         // Creamos el texto de dia mundial
         String diaMundialTexto = "Hoy es el " + diaMundial.getNombre() ;

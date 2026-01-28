@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service;
 
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
+import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.base_client.requests.firebase.RequestFirebaseObtenerUsuarios;
 import es.iesjandula.reaktor.base_client.utils.BaseClientException;
 import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
-import jakarta.annotation.PostConstruct;
 import es.iesjandula.reaktor.notifications_server.models.Constante;
 import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import lombok.extern.slf4j.Slf4j;
@@ -38,33 +38,36 @@ public class UsersService
 	@Autowired
 	private IUsuarioRepository usuarioRepository ;
 
-	/**
-	 * Método para inicializar la base de datos con los usuarios de FirebaseServer
-	 * @throws BaseClientException Excepción de base client
-	 * @throws NotificationsServerException Excepción mientras consulta las constantes de la base de datos
-	 */
-	@PostConstruct
-	public void init() throws BaseClientException, NotificationsServerException
-	{
-		// Nos traemos de FirebaseServer todos los usuarios
-		List<DtoUsuarioBase> usuarios = this.requestFirebaseObtenerUsuarios.obtenerUsuarios();
-
-		// Para cada usuario ...
-		for (DtoUsuarioBase usuario : usuarios)
-		{
-			// ... creamos el usuario en la base de datos
-			this.crearUsuarioEnBBDD(usuario);
-		}
-	}
+	/** Variable para saber si los usuarios han sido inicializados */
+	private boolean usuariosInicializados = false;
 
     /**
 	 * Método auxiliar para obtener el usuario de la base de datos
 	 * @param usuario Usuario extendido
 	 * @return Usuario de la base de datos
+	 * @throws BaseException error al obtener el token personalizado
+	 * @throws BaseClientException Excepción de base client
 	 * @throws NotificationsServerException Excepción de notificaciones web
 	 */
-	public Usuario obtenerUsuario(DtoUsuarioExtended usuario) throws NotificationsServerException
+	public Usuario obtenerUsuario(DtoUsuarioExtended usuario) throws BaseException, BaseClientException, NotificationsServerException
 	{
+		// Si los usuarios no han sido inicializados ...
+		if (!this.usuariosInicializados)
+		{
+			// Nos traemos de FirebaseServer todos los usuarios
+			List<DtoUsuarioBase> usuarios = this.requestFirebaseObtenerUsuarios.obtenerUsuarios();
+
+			// Para cada usuario ...
+			for (DtoUsuarioBase usuarioFirebase : usuarios)
+			{
+				// ... creamos el usuario en la base de datos
+				this.crearUsuarioEnBBDD(usuarioFirebase);
+			}
+
+			// Seteamos que los usuarios han sido inicializados
+			this.usuariosInicializados = true;
+		}
+
 		// Creamos variable de usuario
 		Usuario usuarioDatabase = null;
 

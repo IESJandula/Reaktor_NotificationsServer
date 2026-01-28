@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
+import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.base.utils.FechasUtils;
 import es.iesjandula.reaktor.base_client.dtos.NotificationEmailDto;
 import es.iesjandula.reaktor.base_client.dtos.NotificationWebDto;
@@ -78,9 +79,9 @@ public class BirthdayScheduler
                 log.info("Notificaciones de cumpleaños enviadas correctamente");
             }
         }
-        catch (BaseClientException baseClientException)
+        catch (BaseException | BaseClientException reaktorException)
         {
-            log.error("Error al enviar las notificaciones de cumpleaños: " + baseClientException.getMessage(), baseClientException);
+            log.error("Error al enviar las notificaciones de cumpleaños: " + reaktorException.getMessage(), reaktorException);
         }
     }
 
@@ -108,9 +109,10 @@ public class BirthdayScheduler
      * @param mesActual - El mes actual
      * @param anioActual - El año actual
      * @param dtoUsuarioBase - El DTO del usuario que cumple años
-     * @throws BaseClientException - Si hay un error al enviar la notificación
+     * @throws BaseException error al obtener el token personalizado
+     s* @throws BaseClientException - Si hay un error al enviar la notificación
      */
-    private void enviarNotificacionCumple(int diaActual, int mesActual, int anioActual, DtoUsuarioBase dtoUsuarioBase) throws BaseClientException
+    private void enviarNotificacionCumple(int diaActual, int mesActual, int anioActual, DtoUsuarioBase dtoUsuarioBase) throws BaseException, BaseClientException
     {
         // Creamos el DTO de la notificación email
         NotificationEmailDto notificationEmailDto = new NotificationEmailDto();
