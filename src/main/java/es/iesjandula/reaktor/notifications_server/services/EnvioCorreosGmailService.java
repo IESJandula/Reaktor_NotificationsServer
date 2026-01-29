@@ -152,8 +152,9 @@ public class EnvioCorreosGmailService
             email.setFrom(new InternetAddress(this.from));
 
             // Añado el asunto y el cuerpo del email
-            email.setSubject(notificationEmailDto.getSubject());
-            email.setText(notificationEmailDto.getBody());
+            // Fuerza UTF-8 y contenido HTML (si no, el cliente lo muestra como texto plano con etiquetas)
+            email.setSubject(notificationEmailDto.getSubject(), "UTF-8");
+            email.setContent(notificationEmailDto.getBody(), "text/html; charset=UTF-8");
         }
         catch (Exception exception)
         {
