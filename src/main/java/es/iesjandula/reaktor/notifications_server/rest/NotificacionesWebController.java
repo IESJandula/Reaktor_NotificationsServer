@@ -1,6 +1,5 @@
 package es.iesjandula.reaktor.notifications_server.rest;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,8 +27,10 @@ import es.iesjandula.reaktor.notifications_server.models.Usuario;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.NotificacionWeb;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.aplicacion.NotificacionWebAplicacion;
 import es.iesjandula.reaktor.notifications_server.models.notificacion_web.usuario.NotificacionWebUsuario;
+import es.iesjandula.reaktor.notifications_server.repository.IAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebAplicacionRepository;
 import es.iesjandula.reaktor.notifications_server.repository.INotificacionWebUsuarioRepository;
+import es.iesjandula.reaktor.notifications_server.repository.IUsuarioRepository;
 import es.iesjandula.reaktor.notifications_server.utils.Constants;
 import es.iesjandula.reaktor.notifications_server.utils.NotificationsServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,12 @@ public class NotificacionesWebController
 
 	@Autowired
 	private INotificacionWebAplicacionRepository notificacionWebAplicacionRepository ;
+
+	@Autowired
+	private IUsuarioRepository usuarioRepository;
+
+	@Autowired
+    private IAplicacionRepository aplicacionRepository;
 
 	@Autowired
 	private UsersService usersService ;
@@ -97,13 +104,8 @@ public class NotificacionesWebController
 			// Obtenemos el usuario de la base de datos
 			Usuario usuarioDatabase = this.usersService.obtenerUsuario(usuario) ;
 
-			if (usuarioDatabase.getNotifHoyWeb() >= usuarioDatabase.getNotifMaxWeb())
-			{
-				String errorMessage = "Has alcanzado el límite diario de notificaciones web: " + usuarioDatabase.getNotifMaxWeb();
-				
-				log.error(errorMessage);
-				throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
-			}
+			// Verificamos si el usuario puede enviar otra notificación web
+			this.verificarEnviosWebUsuario(usuarioDatabase);
 
 			// Realizamos validaciones previas
 			this.validacionesPrevias(texto, fechaInicio, horaInicio, fechaFin, horaFin, receptor, tipo) ;
@@ -128,6 +130,35 @@ public class NotificacionesWebController
 	        return ResponseEntity.status(500).body(notificationsServerException.getBodyExceptionMessage());
 	    }
 	}
+
+	/**
+	 * Verifica si el usuario puede enviar otra notificación web y actualiza sus contadores.
+	 *
+	 * @param usuario Usuario que intenta enviar una notificación web
+	 * @throws NotificationsServerException Si supera el máximo diario permitido
+	 */
+	private void verificarEnviosWebUsuario(Usuario usuario) throws NotificationsServerException
+	{
+		// Si la fecha de la última notificación es anterior a hoy (ayer o antes), reiniciamos contador
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        if (usuario.getFechaUltimaNotificacionWeb() == null || usuario.getFechaUltimaNotificacionWeb().toLocalDate().isBefore(hoy))
+        {
+            // Reiniciamos el contador de notificaciones web diarios
+            usuario.setNotifHoyWeb(0);
+    
+            // Guardamos los cambios en la base de datos
+            this.usuarioRepository.saveAndFlush(usuario);
+        }
+
+        // Comprobar límite diario
+        if (usuario.getNotifHoyWeb() > usuario.getNotifMaxWeb())
+        {
+            String errorMessage = "El usuario " + usuario.getEmail() + " ha superado el máximo de notificaciones web diarios permitidas.";
+            log.warn(errorMessage);
+
+            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage);
+        }
+    }
 
 	/**
 	 * Método auxiliar para crear una notificación web
@@ -270,13 +301,8 @@ public class NotificacionesWebController
 			// Obtenemos la aplicación de la base de datos
 			Aplicacion aplicacionDatabase = this.aplicacionesService.obtenerAplicacion(aplicacion);
 
-			if (aplicacionDatabase.getNotifHoyWeb() >= aplicacionDatabase.getNotifMaxWeb())
-			{
-				String errorMessage = "Has alcanzado el límite diario de notificaciones web: " + aplicacionDatabase.getNotifMaxWeb();
-				
-				log.error(errorMessage);
-				throw new NotificationsServerException(Constants.ERR_NOTIFICATIONS_WEB_CREATION, errorMessage);
-			}
+			// Verificamos si la aplicación puede enviar otra notificación web
+			this.verificarEnviosWeb(aplicacionDatabase);
 
 			// Realizamos validaciones previas
 			this.validacionesPrevias(texto, fechaInicio, horaInicio, fechaFin, horaFin, receptor, tipo);
@@ -301,6 +327,35 @@ public class NotificacionesWebController
 	        return ResponseEntity.status(500).body(notificationsServerException.getBodyExceptionMessage());
 	    }
 	}
+
+    /**
+     * Verifica si la aplicación puede enviar otra notificación web y actualiza sus contadores.
+     *
+     * @param aplicacion Aplicación que intenta enviar una notificación web
+     * @throws NotificationsServerException Si supera el máximo diario permitido
+     */
+    private void verificarEnviosWeb(Aplicacion aplicacion) throws NotificationsServerException
+    {
+        // Si la fecha de la última notificación es anterior a hoy (ayer o antes), reiniciamos contador
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        if (aplicacion.getFechaUltimaNotificacionWeb() == null || aplicacion.getFechaUltimaNotificacionWeb().toLocalDate().isBefore(hoy))
+        {
+            // Reiniciamos el contador de emails diarios
+            aplicacion.setNotifHoyWeb(0);
+    
+            // Guardamos los cambios en la base de datos
+            this.aplicacionRepository.saveAndFlush(aplicacion);
+        }
+
+        // Comprobar límite diario
+        if (aplicacion.getNotifHoyWeb() > aplicacion.getNotifMaxWeb())
+        {
+            String errorMessage = "La aplicación " + aplicacion.getNombre() + " ha superado el máximo de notificaciones web diarios permitidas.";
+            log.warn(errorMessage);
+
+            throw new NotificationsServerException(Constants.ERR_GENERIC_EXCEPTION_CODE, errorMessage);
+        }
+    }
 
 	/**
 	 * Método auxiliar para realizar validaciones previas a la creación de una notificación web

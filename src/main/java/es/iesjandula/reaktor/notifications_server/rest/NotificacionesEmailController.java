@@ -266,16 +266,16 @@ public class NotificacionesEmailController
     }
 
     /**
-     * Verifica si el usuario puede enviar otro email y actualiza sus contadores.
+     * Verifica si la aplicación puede enviar otro email y actualiza sus contadores.
      *
      * @param aplicacion Aplicación que intenta enviar un correo
      * @throws NotificationsServerException Si supera el máximo diario permitido
      */
     private void verificarEnviosEmail(Aplicacion aplicacion) throws NotificationsServerException
     {
-        // Si la fecha de la última notificación no es de hoy, reiniciamos contador
-        if (aplicacion.getFechaUltimaNotificacionEmail() == null ||
-            !aplicacion.getFechaUltimaNotificacionEmail().toLocalDate().equals(java.time.LocalDate.now()))
+        // Si la fecha de la última notificación es anterior a hoy (ayer o antes), reiniciamos contador
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        if (aplicacion.getFechaUltimaNotificacionEmail() == null || aplicacion.getFechaUltimaNotificacionEmail().toLocalDate().isBefore(hoy))
         {
             // Reiniciamos el contador de emails diarios
             aplicacion.setNotifHoyEmail(0);
