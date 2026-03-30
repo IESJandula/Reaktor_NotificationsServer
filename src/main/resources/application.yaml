@@ -1,7 +1,14 @@
 spring:
-  profiles:
-    active: LOCAL
-  jpa.hibernate.ddl-auto: update
+  application:
+    name: reaktor-notificationsserver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_notificationsserver?createDatabaseIfNotExist=true
     username: root
@@ -30,3 +37,6 @@ reaktor:
     from: "tucorreo@gmail.com"
     oauthCredentialsFile: C:\claves\gmail_oauth_credentials.json
     oauthRedirectUri: http://localhost:8088/notifications/gmail/oauth2callback
+  audit:
+    exchange: audit.exchange
+    routing-key: audit.key
