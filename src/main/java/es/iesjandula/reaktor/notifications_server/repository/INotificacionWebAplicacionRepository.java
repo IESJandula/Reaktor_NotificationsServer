@@ -39,7 +39,7 @@ public interface INotificacionWebAplicacionRepository extends JpaRepository<Noti
 																								n.receptor,
 																								n.tipo)
 		FROM NotificacionWebAplicacion n
-		WHERE n.tipo = :tipo AND n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.receptor IN :receptores
+		WHERE n.tipo = :tipo AND n.fechaInicio <= CURRENT_DATE AND n.fechaFin >= CURRENT_DATE AND n.horaInicio <= CURRENT_TIME AND n.horaFin >= CURRENT_TIME AND n.receptor IN :receptores
 	"""
 	)
     List<NotificacionesWebResponseDto> buscarTodasLasNotificacionesAplicacionesVigentesPorTipo(String tipo, List<String> receptores);
